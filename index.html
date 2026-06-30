@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/mqtt@5.3.5/dist/mqtt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%;background:#07080d;overflow:hidden}
+  body{font-family:'Instrument Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  ::selection{background:#5ce1ff;color:#07080d}
+  input{font-family:inherit}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes gridPan{from{background-position:0 0}to{background-position:60px 60px}}
+  @keyframes glowFloat{0%,100%{opacity:.5;transform:translate(0,0) scale(1)}50%{opacity:.85;transform:translate(3%,-4%) scale(1.08)}}
+  @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:.15}}
+  @keyframes pulseRing{0%{transform:scale(.85);opacity:.7}100%{transform:scale(1.7);opacity:0}}
+  @keyframes spinSlow{to{transform:rotate(360deg)}}
+  @keyframes moveX{from{transform:translateX(-15px)}to{transform:translateX(15px)}}
+  @keyframes popIn{0%,68%,100%{transform:scale(1)}80%{transform:scale(1.28)}}
+  @keyframes flip{0%,49%{background:#0c0e16;color:#e9edf6}50%,100%{background:#e9edf6;color:#0c0e16}}
+  @keyframes wiggle{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(10deg)}}
+  @keyframes glowText{0%,100%{text-shadow:none;opacity:.7}50%{text-shadow:0 0 20px #5ce1ff;opacity:1}}
+  .rise>*{animation:fadeUp .6s cubic-bezier(.16,1,.3,1) forwards}
+  .rise>*:nth-child(2){animation-delay:.07s}.rise>*:nth-child(3){animation-delay:.14s}.rise>*:nth-child(4){animation-delay:.21s}.rise>*:nth-child(5){animation-delay:.28s}.rise>*:nth-child(6){animation-delay:.35s}
+  .scrolly{scrollbar-width:thin;scrollbar-color:#2a3142 transparent}
+  .scrolly::-webkit-scrollbar{width:8px}.scrolly::-webkit-scrollbar-thumb{background:#2a3142;border-radius:8px}
+  #plan-print{display:none}
+  @media print{ .app-root{display:none!important} #plan-print{display:block!important} body,html{overflow:visible!important;height:auto!important;background:#fff!important} }
+</style>
+</helmet>
+
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#0a0a14"/><g fill="none" stroke="#5ce1ff" stroke-width="3"><rect x="34" y="30" width="32" height="44" rx="4"/><circle cx="50" cy="64" r="3" fill="#5ce1ff"/></g><rect x="42" y="38" width="16" height="3" fill="#a78bfa"/></svg>
+</template>
+
+<div class="app-root" style="position:fixed;inset:0;background:#07080d;color:#e9edf6;font-family:'Instrument Sans',sans-serif;overflow:hidden">
+
+  <!-- blueprint bg -->
+  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(92,225,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(92,225,255,.045) 1px,transparent 1px);background-size:60px 60px;animation:gridPan 22s linear infinite;pointer-events:none"></div>
+  <div style="position:absolute;top:-20%;left:-10%;width:60%;height:70%;background:radial-gradient(circle,rgba(92,225,255,.16),transparent 70%);filter:blur(40px);animation:glowFloat 14s ease-in-out infinite;pointer-events:none"></div>
+  <div style="position:absolute;bottom:-25%;right:-10%;width:55%;height:65%;background:radial-gradient(circle,rgba(167,139,250,.13),transparent 70%);filter:blur(40px);animation:glowFloat 18s ease-in-out infinite reverse;pointer-events:none"></div>
+
+  <!-- connection chip -->
+  <div style="position:absolute;top:16px;left:20px;z-index:50;display:flex;align-items:center;gap:9px;background:rgba(18,21,31,.6);border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:6px 13px;backdrop-filter:blur(8px)">
+    <span style="width:8px;height:8px;border-radius:50%;background:{{ connDot }};box-shadow:0 0 8px {{ connDot }}"></span>
+    <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.14em;color:#aeb7c7">{{ connText }}</span>
+  </div>
+  <button onClick="{{ toggleRole }}" style="position:absolute;bottom:16px;left:16px;z-index:50;background:rgba(18,21,31,.6);border:1px solid rgba(255,255,255,.1);color:#7c8499;border-radius:9px;padding:7px 12px;font-size:11.5px;cursor:pointer;backdrop-filter:blur(6px)" style-hover="color:#5ce1ff;border-color:#5ce1ff">{{ toggleLabel }}</button>
+
+  <!-- ============================================================ PRESENTER ============================================================ -->
+  <sc-if value="{{ isPresenter }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute;inset:0">
+
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:rgba(255,255,255,.05);z-index:40"><div style="height:100%;background:linear-gradient(90deg,#5ce1ff,#a78bfa);box-shadow:0 0 12px rgba(92,225,255,.6);transition:width .6s cubic-bezier(.16,1,.3,1);width:{{ progressW }}"></div></div>
+
+      <div style="position:absolute;top:18px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;z-index:30;pointer-events:none">
+        <div style="width:24px;height:24px;border:1.5px solid #5ce1ff;border-radius:5px;position:relative;flex:none"><div style="position:absolute;inset:5px;border:1.5px solid rgba(92,225,255,.45);border-radius:2px"></div></div>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;color:#8b93a7">ARQUITECTURA&nbsp;DEL&nbsp;AULA</span>
+      </div>
+      <div style="position:absolute;top:18px;right:24px;display:flex;align-items:center;gap:14px;z-index:30">
+        <div style="display:flex;align-items:center;gap:7px;background:rgba(18,21,31,.6);border:1px solid rgba(52,211,153,.25);border-radius:999px;padding:5px 12px"><span style="width:7px;height:7px;border-radius:50%;background:#34d399;box-shadow:0 0 8px #34d399;animation:blink 1.4s infinite"></span><span style="font-family:'JetBrains Mono';font-size:12px;color:#fff">{{ liveCount }}</span><span style="font-size:11px;color:#8b93a7">en vivo</span></div>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.18em;color:#5ce1ff">{{ chapNum }} <span style="color:#465065">/ 08</span></span>
+      </div>
+
+      <!-- module rail -->
+      <div style="position:absolute;top:48px;left:0;right:0;z-index:30;display:flex;justify-content:center;pointer-events:none">
+        <div style="display:flex;align-items:center;gap:2px;background:rgba(18,21,31,.55);border:1px solid rgba(255,255,255,.07);border-radius:999px;padding:5px 8px;backdrop-filter:blur(8px);pointer-events:auto">
+          <sc-for list="{{ moduleRail }}" as="m" hint-placeholder-count="6">
+            <button onClick="{{ m.onClick }}" title="{{ m.label }}" style="display:flex;align-items:center;gap:7px;background:transparent;border:none;cursor:pointer;padding:5px 11px;border-radius:999px">
+              <span style="width:19px;height:19px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono';font-size:10px;font-weight:700;transition:all .3s;background:{{ m.dotBg }};color:{{ m.dotCol }};border:1px solid {{ m.dotBdr }}">{{ m.n }}</span>
+              <span style="font-family:'Instrument Sans';font-size:12.5px;font-weight:500;white-space:nowrap;transition:color .3s;color:{{ m.txtCol }}">{{ m.label }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="position:absolute;inset:0;overflow:hidden">
+        <div id="chapter-wrap" style="position:relative;width:100%;height:100%">
+
+          <!-- 00 APERTURA -->
+          <section class="scrolly" style="position:absolute;inset:0;overflow-y:auto;display:flex;flex-direction:column;justify-content:flex-start;align-items:center;padding:118px 6vw 110px">
+            <div class="rise" style="max-width:1080px;width:100%;margin-block:auto;text-align:center;display:flex;flex-direction:column;align-items:center;gap:20px">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.32em;color:#5ce1ff;text-transform:uppercase">Ponencia Magistral · Educación Superior</div>
+              <h1 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(40px,6.4vw,96px);line-height:.98;letter-spacing:-.02em;margin:0;background:linear-gradient(180deg,#ffffff,#9fb3c8);-webkit-background-clip:text;background-clip:text;color:transparent">Arquitectura<br>del Aula</h1>
+              <p style="font-size:clamp(16px,2vw,21px);line-height:1.5;color:#aeb7c7;max-width:680px;margin:0;text-wrap:balance">Diseñar experiencias de aprendizaje que generen <em style="color:#e9edf6;font-style:normal;border-bottom:1px solid #5ce1ff">atención, participación y éxito académico</em>.</p>
+
+              <div style="margin-top:6px;width:100%;max-width:880px;background:rgba(18,21,31,.72);border:1px solid rgba(92,225,255,.16);border-radius:18px;padding:24px 30px;backdrop-filter:blur(8px);text-align:left;display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center">
+                <div style="background:#fff;border-radius:16px;padding:16px;flex:none"><div id="qrbox" style="width:170px;height:170px;display:flex;align-items:center;justify-content:center"></div></div>
+                <div>
+                  <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px"><span style="width:8px;height:8px;border-radius:50%;background:#fb7185;box-shadow:0 0 10px #fb7185;animation:blink 1.4s infinite"></span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:#fb7185">PARTICIPE EN VIVO</span></div>
+                  <h3 style="font-family:'Space Grotesk';font-weight:600;font-size:clamp(20px,2.2vw,26px);margin:0 0 6px;color:#fff">Escanee el código y conéctese</h3>
+                  <p style="margin:0 0 14px;font-size:14px;color:#9aa3b5;line-height:1.5">Desde su teléfono, sin instalar nada. Responderá encuestas, diagnósticos y actividades durante toda la conferencia.</p>
+                  <div style="display:flex;align-items:center;gap:14px">
+                    <div style="display:flex;align-items:center;gap:10px;background:rgba(92,225,255,.08);border:1px solid rgba(92,225,255,.2);border-radius:12px;padding:10px 18px"><span style="font-family:'Space Grotesk';font-weight:700;font-size:30px;color:#fff;line-height:1">{{ liveCount }}</span><span style="font-size:13px;color:#8b93a7;line-height:1.2">docentes<br>conectados</span></div>
+                    <span style="font-family:'JetBrains Mono';font-size:10.5px;color:#465065;word-break:break-all;flex:1">{{ qrShort }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-top:6px;width:100%;max-width:880px;background:rgba(18,21,31,.6);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px 26px;text-align:left">
+                <h3 style="font-family:'Space Grotesk';font-weight:600;font-size:18px;margin:0 0 14px;color:#fff">¿Cuál es el principal desafío que enfrenta hoy en sus clases?</h3>
+                <div style="display:flex;flex-direction:column;gap:9px">
+                  <sc-for list="{{ pollRows }}" as="row" hint-placeholder-count="7">
+                    <div style="display:grid;grid-template-columns:210px 1fr 84px;align-items:center;gap:14px">
+                      <span style="display:flex;align-items:center;gap:9px;font-weight:500;font-size:15px;color:#dfe5ef"><span style="width:9px;height:9px;border-radius:3px;flex:none;background:{{ row.color }}"></span>{{ row.label }}</span>
+                      <span style="height:14px;border-radius:7px;background:rgba(255,255,255,.06);overflow:hidden"><span style="display:block;height:100%;border-radius:7px;transition:width .7s cubic-bezier(.16,1,.3,1);width:{{ row.width }};background:{{ row.color }}"></span></span>
+                      <span style="display:flex;gap:7px;justify-content:flex-end;align-items:baseline"><span style="font-family:'Space Grotesk';font-weight:700;font-size:16px;color:#fff">{{ row.pctLabel }}</span><span style="font-family:'JetBrains Mono';font-size:12px;color:#7c8499">{{ row.count }}</span></span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px">
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#7c8499"><span style="color:#5ce1ff;font-size:16px">{{ pollTotal }}</span> votos en vivo</span>
+                  <div style="display:flex;gap:10px">
+                    <button onClick="{{ resetPoll }}" style="background:transparent;border:1px solid rgba(255,255,255,.12);color:#8b93a7;border-radius:9px;padding:8px 15px;font-size:13px;cursor:pointer">Reiniciar</button>
+                    <button onClick="{{ revealPoll }}" style="background:linear-gradient(90deg,#5ce1ff,#a78bfa);border:none;color:#07080d;font-weight:600;border-radius:9px;padding:8px 18px;font-size:13px;cursor:pointer">Revelar la idea →</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 01 DIAGNÓSTICO (live dashboard) -->
+          <section class="scrolly" style="position:absolute;inset:0;overflow-y:auto;display:none;flex-direction:column;justify-content:flex-start;padding:118px 5vw 90px">
+            <div class="rise" style="max-width:1180px;width:100%;margin:auto;display:flex;flex-direction:column;gap:22px">
+              <div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.28em;color:#5ce1ff;margin-bottom:10px">BLOQUE 01 · DIAGNÓSTICO EN VIVO</div>
+                <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(28px,4vw,50px);line-height:1.02;letter-spacing:-.02em;margin:0;color:#fff">¿Cómo es el aula de <span style="color:#5ce1ff">esta sala</span> ahora mismo?</h2>
+                <p style="margin:8px 0 0;color:#9aa3b5;font-size:16px">Cada docente respondió 10 preguntas en su teléfono. Esto es lo que dice el grupo, en tiempo real.</p>
+              </div>
+              <div style="display:grid;grid-template-columns:300px 1fr;gap:26px;align-items:center">
+                <div style="border:1px solid rgba(92,225,255,.2);background:rgba(92,225,255,.04);border-radius:18px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:8px">
+                  <div style="position:relative;width:190px;height:190px">
+                    <svg viewBox="0 0 160 160" style="width:190px;height:190px;transform:rotate(-90deg)">
+                      <circle cx="80" cy="80" r="66" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="13"></circle>
+                      <circle cx="80" cy="80" r="66" fill="none" stroke="{{ dGaugeColor }}" stroke-width="13" stroke-linecap="round" stroke-dasharray="{{ gaugeDash }}" stroke-dashoffset="{{ dGaugeOffset }}" style="transition:stroke-dashoffset .9s cubic-bezier(.16,1,.3,1),stroke .4s"></circle>
+                    </svg>
+                    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+                      <span style="font-family:'Space Grotesk';font-weight:700;font-size:46px;color:#fff;line-height:1">{{ dAvg }}</span>
+                      <span style="font-family:'JetBrains Mono';font-size:11px;color:#8b93a7">promedio / 50</span>
+                    </div>
+                  </div>
+                  <div style="font-family:'Space Grotesk';font-weight:600;font-size:18px;color:{{ dGaugeColor }}">{{ dAvgProfile }}</div>
+                  <div style="font-family:'JetBrains Mono';font-size:12px;color:#8b93a7"><span style="color:#fff;font-size:15px">{{ dCount }}</span> respuestas</div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:14px">
+                  <div style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.16em;color:#8b93a7">DISTRIBUCIÓN DE PERFILES</div>
+                  <sc-for list="{{ dProfiles }}" as="p" hint-placeholder-count="3">
+                    <div style="border:1px solid {{ p.bdr }};background:{{ p.bg }};border-radius:14px;padding:16px 18px;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center">
+                      <span style="font-size:26px;color:{{ p.color }}">{{ p.icon }}</span>
+                      <div><div style="font-family:'Space Grotesk';font-weight:600;font-size:17px;color:#fff">{{ p.name }}</div><span style="display:block;height:8px;border-radius:5px;background:rgba(255,255,255,.06);overflow:hidden;margin-top:7px"><span style="display:block;height:100%;border-radius:5px;transition:width .7s;width:{{ p.width }};background:{{ p.color }}"></span></span></div>
+                      <div style="text-align:right"><span style="font-family:'Space Grotesk';font-weight:700;font-size:22px;color:#fff">{{ p.pct }}</span><div style="font-family:'JetBrains Mono';font-size:11px;color:#7c8499">{{ p.count }} docentes</div></div>
+                    </div>
+                  </sc-for>
+                  <div style="border-left:3px solid #5ce1ff;padding:4px 0 4px 16px;margin-top:4px"><p style="margin:0;font-size:15px;color:#cbd3e1;line-height:1.5">Durante esta conferencia veremos cómo mover el aula hacia el <span style="color:#34d399">alto impacto</span>: atención, feedback y progreso.</p></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 02 EL ARQUITECTO -->
+          <section class="scrolly" style="position:absolute;inset:0;overflow-y:auto;display:none;flex-direction:column;justify-content:flex-start;padding:118px 6vw 90px">
+            <div class="rise" style="max-width:1240px;width:100%;margin:auto;display:flex;flex-direction:column;gap:26px">
+              <div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.28em;color:#5ce1ff;margin-bottom:10px">BLOQUE 02</div><h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(30px,4.4vw,56px);line-height:1.02;letter-spacing:-.02em;margin:0;color:#fff">El docente como <span style="color:#5ce1ff">arquitecto</span> del aprendizaje</h2></div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+                <sc-for list="{{ professions }}" as="p" hint-placeholder-count="4">
+                  <div style="border:1px solid {{ p.border }};background:{{ p.bg }};border-radius:16px;padding:22px 20px;display:flex;flex-direction:column;gap:12px;min-height:170px">
+                    <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:30px;color:{{ p.accent }}">{{ p.icon }}</div>
+                    <div style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:19px;color:#fff">{{ p.role }}</div>
+                    <div style="font-size:15px;color:#aeb7c7;line-height:1.4">Diseña <strong style="color:#e9edf6;font-weight:600">{{ p.designs }}</strong></div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+                <div style="border:1px solid rgba(52,211,153,.25);background:rgba(52,211,153,.05);border-radius:16px;padding:22px 24px">
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:#34d399;margin-bottom:14px">CONDUCTAS DESEADAS</div>
+                  <div style="display:flex;flex-wrap:wrap;gap:9px"><sc-for list="{{ wanted }}" as="w" hint-placeholder-count="6"><span style="border:1px solid rgba(52,211,153,.35);background:rgba(52,211,153,.1);color:#a7f3d0;border-radius:999px;padding:7px 15px;font-size:14px;font-weight:500">{{ w }}</span></sc-for></div>
+                </div>
+                <div style="border:1px solid rgba(251,113,133,.22);background:rgba(251,113,133,.05);border-radius:16px;padding:22px 24px">
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:#fb7185;margin-bottom:14px">CONDUCTAS NO DESEADAS</div>
+                  <div style="display:flex;flex-wrap:wrap;gap:9px"><sc-for list="{{ unwanted }}" as="u" hint-placeholder-count="5"><span style="border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.08);color:#fecdd3;border-radius:999px;padding:7px 15px;font-size:14px;font-weight:500">{{ u }}</span></sc-for></div>
+                </div>
+              </div>
+              <div style="border-left:3px solid #5ce1ff;padding:6px 0 6px 22px"><p style="font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:clamp(20px,2.8vw,32px);line-height:1.25;margin:0;color:#fff;text-wrap:balance">Si una conducta ocurre <span style="color:#5ce1ff">frecuentemente</span>, el entorno la está favoreciendo.</p></div>
+            </div>
+          </section>
+
+          <!-- 03 ATENCIÓN -->
+          <section class="scrolly" style="position:absolute;inset:0;overflow-y:auto;display:none;flex-direction:column;justify-content:flex-start;padding:118px 5vw 90px">
+            <div class="rise" style="max-width:1240px;width:100%;margin:auto;display:flex;flex-direction:column;gap:22px">
+              <div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.28em;color:#5ce1ff;margin-bottom:10px">BLOQUE 03</div><h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(28px,4vw,50px);line-height:1.02;letter-spacing:-.02em;margin:0;color:#fff">Diseño de estímulos y captura de la <span style="color:#5ce1ff">atención</span></h2></div>
+              <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
+                <div style="border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:9px;align-items:center;text-align:center"><div style="width:100%;height:54px;border-radius:9px;background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center;overflow:hidden"><span style="font-size:22px;color:#5ce1ff;animation:moveX 1.3s ease-in-out infinite alternate">◆</span></div><div style="font-family:'Space Grotesk';font-weight:600;color:#fff;font-size:16px">Movimiento</div><div style="font-size:12.5px;color:#8b93a7;line-height:1.35">El ojo persigue lo que se mueve.</div></div>
+                <div style="border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:9px;align-items:center;text-align:center"><div style="width:100%;height:54px;border-radius:9px;background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center"><span style="font-family:'JetBrains Mono';font-size:11px;font-weight:700;color:#07080d;background:#ffb84d;padding:4px 9px;border-radius:6px;animation:popIn 1.8s ease infinite">¡NUEVO!</span></div><div style="font-family:'Space Grotesk';font-weight:600;color:#fff;font-size:16px">Novedad</div><div style="font-size:12.5px;color:#8b93a7;line-height:1.35">Lo inesperado reactiva el foco.</div></div>
+                <div style="border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:9px;align-items:center;text-align:center"><div style="width:100%;height:54px;border-radius:9px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:15px;animation:flip 1.6s steps(1) infinite">Aa</div><div style="font-family:'Space Grotesk';font-weight:600;color:#fff;font-size:16px">Contraste</div><div style="font-size:12.5px;color:#8b93a7;line-height:1.35">Lo que rompe el patrón resalta.</div></div>
+                <div style="border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:9px;align-items:center;text-align:center"><div style="width:100%;height:54px;border-radius:9px;background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center"><span style="font-family:'Space Grotesk';font-weight:700;font-size:22px;color:#34d399;animation:glowText 1.8s ease-in-out infinite">TÚ</span></div><div style="font-family:'Space Grotesk';font-weight:600;color:#fff;font-size:16px">Relevancia</div><div style="font-size:12.5px;color:#8b93a7;line-height:1.35">“Esto me afecta a mí”.</div></div>
+                <div style="border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:9px;align-items:center;text-align:center"><div style="width:100%;height:54px;border-radius:9px;background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center"><span style="font-family:'Space Grotesk';font-weight:700;font-size:24px;color:#a78bfa;display:inline-block;animation:wiggle 1.1s ease-in-out infinite">?</span></div><div style="font-family:'Space Grotesk';font-weight:600;color:#fff;font-size:16px">Desafío</div><div style="font-size:12.5px;color:#8b93a7;line-height:1.35">Un problema abierto genera tensión.</div></div>
+              </div>
+              <div style="border:1px solid rgba(255,255,255,.08);background:rgba(18,21,31,.5);border-radius:16px;padding:22px 24px;display:flex;flex-direction:column;gap:16px">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><div style="font-family:'Space Grotesk';font-weight:600;font-size:19px;color:#fff">El primer minuto decide</div><div style="display:flex;gap:8px"><sc-for list="{{ facultyTabs }}" as="ft" hint-placeholder-count="4"><button onClick="{{ ft.onClick }}" style="font-family:'Instrument Sans';font-size:13px;font-weight:500;border-radius:999px;padding:7px 15px;cursor:pointer;transition:all .2s;background:{{ ft.bg }};border:1px solid {{ ft.bdr }};color:{{ ft.col }}">{{ ft.label }}</button></sc-for></div></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                  <div style="border:1px solid rgba(251,113,133,.25);background:rgba(251,113,133,.05);border-radius:13px;padding:18px"><div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.18em;color:#fb7185;margin-bottom:10px">✕ APERTURA PLANA</div><p style="margin:0;font-size:17px;color:#cfd6e2;line-height:1.4">{{ openingBad }}</p></div>
+                  <div style="border:1px solid rgba(92,225,255,.35);background:rgba(92,225,255,.06);border-radius:13px;padding:18px"><div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.18em;color:#5ce1ff;margin-bottom:10px">✓ APERTURA DE ALTO IMPACTO</div><p style="margin:0;font-size:17px;color:#fff;line-height:1.4;font-weight:500">{{ openingGood }}</p></div>
+                </div>
+              </div>
+              <div style="border:1px solid rgba(255,255,255,.08);background:rgba(18,21,31,.5);border-radius:16px;padding:22px 24px;display:flex;flex-direction:column;gap:15px">
+                <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px"><div><div style="font-family:'Space Grotesk';font-weight:600;font-size:19px;color:#fff">La atención durante una clase de 50 minutos</div><div style="font-size:13.5px;color:#9aa3b5;margin-top:3px;max-width:680px">La <span style="color:#5ce1ff">clase diseñada</span> aplica la <strong style="color:#e9edf6;font-weight:600">regla 10–2</strong>; la <span style="color:#fb7185">tradicional</span> solo expone.</div></div><div style="font-family:'JetBrains Mono';font-size:13px;color:#8b93a7;white-space:nowrap">Minuto <span style="color:#fff;font-size:20px">{{ minute }}</span></div></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div style="border:1px solid rgba(251,113,133,.3);background:rgba(251,113,133,.05);border-radius:12px;padding:13px 16px"><div style="font-size:12.5px;color:#fb7185;font-weight:600;margin-bottom:5px">Clase tradicional</div><div style="display:flex;align-items:baseline;gap:6px"><span style="font-family:'JetBrains Mono';font-size:30px;color:#fb7185">{{ tradVal }}</span><span style="font-size:14px;color:#8b93a7">% atención</span></div></div><div style="border:1px solid rgba(92,225,255,.35);background:rgba(92,225,255,.06);border-radius:12px;padding:13px 16px"><div style="font-size:12.5px;color:#5ce1ff;font-weight:600;margin-bottom:5px">Clase diseñada</div><div style="display:flex;align-items:baseline;gap:6px"><span style="font-family:'JetBrains Mono';font-size:30px;color:#5ce1ff">{{ designVal }}</span><span style="font-size:14px;color:#8b93a7">% atención</span></div></div></div>
+                <svg viewBox="0 0 600 162" style="width:100%;height:auto;display:block"><line x1="0" y1="150" x2="600" y2="150" stroke="rgba(255,255,255,.12)" stroke-width="1"/><path d="{{ tradPath }}" fill="none" stroke="#fb7185" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="{{ designPath }}" fill="none" stroke="#5ce1ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 6px rgba(92,225,255,.4))"/><line x1="{{ markerX }}" y1="10" x2="{{ markerX }}" y2="150" stroke="rgba(255,255,255,.3)" stroke-width="1" stroke-dasharray="3 3"/><circle cx="{{ markerX }}" cy="{{ tradY }}" r="4.5" fill="#fb7185" stroke="#07080d" stroke-width="1.5"/><circle cx="{{ markerX }}" cy="{{ designY }}" r="4.5" fill="#5ce1ff" stroke="#07080d" stroke-width="1.5"/></svg>
+                <div style="display:flex;align-items:center;gap:12px"><span style="font-family:'JetBrains Mono';font-size:11px;color:#5b6478">0 min</span><input type="range" min="0" max="50" step="1" value="{{ minute }}" onChange="{{ onMinute }}" onInput="{{ onMinute }}" style="flex:1;accent-color:#5ce1ff;cursor:pointer;height:4px"/><span style="font-family:'JetBrains Mono';font-size:11px;color:#5b6478">50 min</span></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 04 FEEDBACK + semáforo live -->
+          <section class="scrolly" style="position:absolute;inset:0;overflow-y:auto;display:none;flex-direction:column;justify-content:flex-start;padding:118px 5vw 90px">
+            <div class="rise" style="max-width:1240px;width:100%;margin:auto;display:flex;flex-direction:column;gap:22px">
+              <div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.28em;color:#34d399;margin-bottom:10px">BLOQUE 04</div><h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(28px,4vw,50px);line-height:1.02;letter-spacing:-.02em;margin:0;color:#fff">El poder del <span style="color:#34d399">feedback inmediato</span></h2></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <div style="border:1px solid rgba(52,211,153,.3);background:rgba(52,211,153,.05);border-radius:16px;padding:22px"><div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;color:#34d399;margin-bottom:4px">ESCENARIO A</div><div style="font-family:'Space Grotesk';font-weight:600;font-size:19px;color:#fff;margin-bottom:3px">Feedback inmediato</div><p style="margin:0 0 16px;font-size:14px;color:#9aa3b5">Se corrige el error en el mismo instante.</p><div style="height:14px;border-radius:8px;background:rgba(255,255,255,.06);overflow:hidden"><div style="height:100%;border-radius:8px;background:linear-gradient(90deg,#34d399,#5ce1ff);transition:width .15s linear;width:{{ raceAw }}"></div></div><div style="display:flex;justify-content:space-between;margin-top:8px"><span style="font-size:13px;color:#8b93a7">Dominio</span><span style="font-family:'JetBrains Mono';font-size:18px;color:#34d399">{{ raceAn }}%</span></div></div>
+                <div style="border:1px solid rgba(251,113,133,.25);background:rgba(251,113,133,.04);border-radius:16px;padding:22px"><div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;color:#fb7185;margin-bottom:4px">ESCENARIO B</div><div style="font-family:'Space Grotesk';font-weight:600;font-size:19px;color:#fff;margin-bottom:3px">Feedback 15 días después</div><p style="margin:0 0 16px;font-size:14px;color:#9aa3b5">Se corrige cuando ya olvidó el error.</p><div style="height:14px;border-radius:8px;background:rgba(255,255,255,.06);overflow:hidden"><div style="height:100%;border-radius:8px;background:#fb7185;transition:width .15s linear;width:{{ raceBw }}"></div></div><div style="display:flex;justify-content:space-between;margin-top:8px"><span style="font-size:13px;color:#8b93a7">Dominio</span><span style="font-family:'JetBrains Mono';font-size:18px;color:#fb7185">{{ raceBn }}%</span></div></div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px"><p style="margin:0;font-family:'Space Grotesk';font-weight:500;font-size:clamp(17px,2vw,22px);color:#fff;max-width:760px">Mientras más rápida es la retroalimentación, <span style="color:#34d399">más rápido aprende</span> el estudiante.</p><button onClick="{{ runRace }}" style="background:linear-gradient(90deg,#34d399,#5ce1ff);border:none;color:#07080d;font-weight:600;border-radius:10px;padding:12px 24px;font-size:14px;cursor:pointer;white-space:nowrap">▶ Simular aprendizaje</button></div>
+              <div style="border:1px solid rgba(255,255,255,.08);background:rgba(18,21,31,.5);border-radius:16px;padding:22px 24px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px"><div><div style="display:flex;align-items:center;gap:9px"><span style="width:7px;height:7px;border-radius:50%;background:#fb7185;box-shadow:0 0 8px #fb7185;animation:blink 1.4s infinite"></span><div style="font-family:'Space Grotesk';font-weight:600;font-size:19px;color:#fff">Semáforo de aprendizaje · EN VIVO</div></div><div style="font-size:13px;color:#8b93a7;margin-top:3px">Los docentes tocan su estado desde el teléfono — pulso de comprensión real.</div></div><button onClick="{{ resetSem }}" style="background:transparent;border:1px solid rgba(255,255,255,.12);color:#8b93a7;border-radius:9px;padding:8px 15px;font-size:13px;cursor:pointer">Reiniciar</button></div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+                  <div style="border:1px solid rgba(52,211,153,.4);background:rgba(52,211,153,.06);border-radius:13px;padding:18px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:12px"><span style="width:14px;height:14px;border-radius:50%;background:#34d399;box-shadow:0 0 12px #34d399"></span><span style="font-weight:600;font-size:16px;color:#fff">Entiendo</span></div><div style="font-family:'JetBrains Mono';font-size:34px;color:#34d399">{{ semaforo.verde }}</div><div style="height:6px;border-radius:4px;background:rgba(255,255,255,.06);margin-top:10px;overflow:hidden"><div style="height:100%;background:#34d399;border-radius:4px;transition:width .5s;width:{{ semVerdeW }}"></div></div></div>
+                  <div style="border:1px solid rgba(255,184,77,.4);background:rgba(255,184,77,.06);border-radius:13px;padding:18px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:12px"><span style="width:14px;height:14px;border-radius:50%;background:#ffb84d;box-shadow:0 0 12px #ffb84d"></span><span style="font-weight:600;font-size:16px;color:#fff">Tengo dudas</span></div><div style="font-family:'JetBrains Mono';font-size:34px;color:#ffb84d">{{ semaforo.amarillo }}</div><div style="height:6px;border-radius:4px;background:rgba(255,255,255,.06);margin-top:10px;overflow:hidden"><div style="height:100%;background:#ffb84d;border-radius:4px;transition:width .5s;width:{{ semAmW }}"></div></div></div>
+                  <div style="border:1px solid rgba(251,113,133,.4);background:rgba(251,113,133,.06);border-radius:13px;padding:18px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:12px"><span style="width:14px;height:14px;border-radius:50%;background:#fb7185;box-shadow:0 0 12px #fb7185"></span><span style="font-weight:600;font-size:16px;color:#fff">Estoy perdido</span></div><div style="font-family:'JetBrains Mono';font-size:34px;color:#fb7185">{{ semaforo.rojo }}</div><div style="height:6px;border-radius:4px;background:rgba(255,255,255,.06);margin-top:10px;overflow:hidden"><div style="height:100%;background:#fb7185;border-radius:4px;transition:width .5s;width:{{ semRojoW }}"></div></div></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 05 MICRO-PROGRESOS -->
+          <section class="scrolly" style="position:absolute;inset:0;overflow-y:auto;display:none;flex-direction:column;justify-content:flex-start;padding:118px 5vw 90px">
+            <div class="rise" style="max-width:1240px;width:100%;margin:auto;display:flex;flex-direction:column;gap:20px">
+              <div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.28em;color:#a78bfa;margin-bottom:10px">BLOQUE 05</div><h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(28px,4vw,50px);line-height:1.02;letter-spacing:-.02em;margin:0;color:#fff">Micro-progresos y <span style="color:#a78bfa">construcción</span> del aprendizaje</h2><p style="margin:10px 0 0;font-family:'Space Grotesk';font-weight:500;font-size:clamp(17px,2vw,22px);color:#cbd3e1">Nadie aprende una competencia compleja de una sola vez.</p></div>
+              <div style="border:1px solid rgba(255,255,255,.08);background:rgba(18,21,31,.5);border-radius:16px;padding:22px 24px;display:flex;flex-direction:column;gap:18px">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px"><div style="display:flex;align-items:baseline;gap:10px"><span style="font-family:'Space Grotesk';font-weight:600;font-size:18px;color:#fff">Construya los micro-pasos</span><span style="font-size:13.5px;color:#a78bfa">Meta: {{ ladderGoal }}</span></div><div style="display:flex;gap:8px"><sc-for list="{{ ladderTabs }}" as="lt" hint-placeholder-count="3"><button onClick="{{ lt.onClick }}" style="font-size:13px;font-weight:500;border-radius:999px;padding:7px 15px;cursor:pointer;transition:all .2s;background:{{ lt.bg }};border:1px solid {{ lt.bdr }};color:{{ lt.col }}">{{ lt.short }}</button></sc-for></div></div>
+                <div style="display:flex;flex-wrap:wrap;gap:10px;min-height:46px;align-items:center"><span style="font-family:'JetBrains Mono';font-size:11px;color:#5b6478;letter-spacing:.1em;margin-right:4px">PIEZAS:</span><sc-for list="{{ poolItems }}" as="pi" hint-placeholder-count="5"><button draggable="true" onClick="{{ pi.onClick }}" onDragStart="{{ pi.onDragStart }}" style="font-family:'Instrument Sans';font-size:14px;font-weight:500;color:#e9edf6;border-radius:10px;padding:10px 16px;cursor:grab;transition:all .15s;background:{{ pi.bg }};border:1px solid {{ pi.bdr }}">⠿ {{ pi.label }}</button></sc-for></div>
+                <div style="display:flex;align-items:flex-end;gap:12px;padding-top:8px;min-height:230px"><sc-for list="{{ slotItems }}" as="sl" hint-placeholder-count="5"><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:{{ sl.mb }}"><div onClick="{{ sl.onClick }}" onDrop="{{ sl.onDrop }}" onDragOver="{{ sl.onDragOver }}" style="width:100%;min-height:74px;border-radius:12px;border:1.5px dashed {{ sl.bdr }};background:{{ sl.bg }};display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;cursor:pointer;transition:all .2s;font-size:13.5px;font-weight:500;color:#e9edf6">{{ sl.label }}</div><div style="width:30px;height:30px;border-radius:50%;border:1px solid rgba(167,139,250,.4);background:rgba(167,139,250,.08);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono';font-size:13px;color:#a78bfa">{{ sl.step }}</div></div></sc-for></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><span style="font-size:14px;font-weight:500;transition:color .3s;color:{{ ladderMsgColor }}">{{ ladderMsg }}</span><button onClick="{{ resetLadder }}" style="background:transparent;border:1px solid rgba(255,255,255,.12);color:#8b93a7;border-radius:9px;padding:8px 15px;font-size:13px;cursor:pointer">Barajar de nuevo</button></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 06 GENERACIONES + live distribution -->
+          <section class="scrolly" style="position:absolute;inset:0;overflow-y:auto;display:none;flex-direction:column;justify-content:flex-start;padding:118px 5vw 90px">
+            <div class="rise" style="max-width:1180px;width:100%;margin:auto;display:flex;flex-direction:column;gap:20px">
+              <div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.28em;color:#ffb84d;margin-bottom:10px">BLOQUE 06</div><h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(28px,4vw,50px);line-height:1.02;letter-spacing:-.02em;margin:0;color:#fff">Enseñar a <span style="color:#ffb84d">múltiples generaciones</span></h2></div>
+              <div style="border:1px solid rgba(255,184,77,.2);background:rgba(255,184,77,.04);border-radius:16px;padding:18px 22px">
+                <div style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.16em;color:#ffb84d;margin-bottom:12px">¿DE QUÉ GENERACIÓN SON USTEDES? · EN VIVO</div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px"><sc-for list="{{ genDist }}" as="g" hint-placeholder-count="3"><div style="border:1px solid {{ g.bdr }};background:{{ g.bg }};border-radius:13px;padding:14px 16px"><div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-family:'Space Grotesk';font-weight:600;font-size:15px;color:#fff">{{ g.name }}</span><span style="font-family:'Space Grotesk';font-weight:700;font-size:20px;color:{{ g.color }}">{{ g.pct }}</span></div><span style="display:block;height:7px;border-radius:5px;background:rgba(255,255,255,.06);overflow:hidden;margin-top:9px"><span style="display:block;height:100%;border-radius:5px;transition:width .6s;width:{{ g.width }};background:{{ g.color }}"></span></span></div></sc-for></div>
+              </div>
+              <div style="display:flex;gap:8px"><sc-for list="{{ genTabs }}" as="gt" hint-placeholder-count="3"><button onClick="{{ gt.onClick }}" style="font-family:'Instrument Sans';font-size:14px;font-weight:500;border-radius:10px;padding:10px 18px;cursor:pointer;transition:all .2s;background:{{ gt.bg }};border:1px solid {{ gt.bdr }};color:{{ gt.col }}">{{ gt.label }}</button></sc-for></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <div style="border:1px solid rgba(255,184,77,.25);background:rgba(255,184,77,.04);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:14px"><div><div style="font-family:'Space Grotesk';font-weight:700;font-size:24px;color:#fff">{{ genName }}</div><div style="font-family:'JetBrains Mono';font-size:13px;color:#ffb84d;margin-top:2px">{{ genAge }}</div></div><div><div style="font-family:'JetBrains Mono';font-size:10.5px;letter-spacing:.16em;color:#8b93a7;margin-bottom:6px">FORMATOS PREFERIDOS</div><div style="font-size:15px;color:#dfe5ef;line-height:1.45">{{ genFormats }}</div></div><div><div style="font-family:'JetBrains Mono';font-size:10.5px;letter-spacing:.16em;color:#8b93a7;margin-bottom:6px">REFORZADORES</div><div style="font-size:15px;color:#dfe5ef;line-height:1.45">{{ genReinforce }}</div></div></div>
+                <div style="border:1px solid rgba(92,225,255,.25);background:rgba(92,225,255,.05);border-radius:16px;padding:22px;display:flex;flex-direction:column;justify-content:center"><div style="font-family:'JetBrains Mono';font-size:10.5px;letter-spacing:.16em;color:#5ce1ff;margin-bottom:8px">ESTRATEGIA ADAPTATIVA</div><p style="margin:0;font-size:18px;color:#fff;line-height:1.45;font-weight:500">{{ genStrategy }}</p></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 07 LABORATORIO + live count -->
+          <section class="scrolly" style="position:absolute;inset:0;overflow-y:auto;display:none;flex-direction:column;justify-content:flex-start;padding:118px 5vw 90px">
+            <div class="rise" style="max-width:1240px;width:100%;margin:auto;display:flex;flex-direction:column;gap:18px">
+              <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px"><div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.28em;color:#5ce1ff;margin-bottom:10px">BLOQUE 07 · ACTIVIDAD FINAL</div><h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(28px,4vw,50px);line-height:1.02;letter-spacing:-.02em;margin:0;color:#fff">Laboratorio <span style="color:#5ce1ff">Docente</span></h2><p style="margin:8px 0 0;color:#9aa3b5;font-size:16px">Cada docente diseña su próxima clase en el teléfono y descarga su plan.</p></div><div style="text-align:center;background:rgba(92,225,255,.08);border:1px solid rgba(92,225,255,.2);border-radius:14px;padding:14px 24px"><div style="font-family:'Space Grotesk';font-weight:700;font-size:40px;color:#5ce1ff;line-height:1">{{ labCount }}</div><div style="font-size:12px;color:#8b93a7">clases diseñadas</div></div></div>
+              <div style="border:1px solid rgba(255,255,255,.08);background:rgba(18,21,31,.5);border-radius:16px;padding:22px 24px">
+                <div style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.16em;color:#8b93a7;margin-bottom:14px">DISEÑOS RECIENTES DE LA SALA</div>
+                <sc-if value="{{ labEmpty }}" hint-placeholder-val="{{ true }}"><div style="border:1px dashed rgba(255,255,255,.14);border-radius:12px;padding:24px;text-align:center;color:#8b93a7;font-size:14px">Aún no hay diseños. Cuando los docentes generen su clase en el teléfono, aparecerán aquí en vivo.</div></sc-if>
+                <div style="display:flex;flex-direction:column;gap:10px"><sc-for list="{{ labFeed }}" as="f" hint-placeholder-count="0"><div style="display:grid;grid-template-columns:160px 1fr 1fr 1fr;gap:12px;align-items:center;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02);border-radius:12px;padding:12px 16px"><span style="font-weight:600;color:#fff;font-size:15px">{{ f.name }}</span><span style="font-size:13px;color:#5ce1ff">◆ {{ f.atencion }}</span><span style="font-size:13px;color:#34d399">⟳ {{ f.feedback }}</span><span style="font-size:13px;color:#a78bfa">▲ {{ f.progreso }}</span></div></sc-for></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 08 CIERRE -->
+          <section class="scrolly" style="position:absolute;inset:0;overflow-y:auto;display:none;flex-direction:column;justify-content:flex-start;padding:118px 5vw 90px">
+            <div class="rise" style="max-width:1180px;width:100%;margin:auto;display:flex;flex-direction:column;align-items:center;gap:24px;text-align:center">
+              <div style="position:relative;width:110px;height:110px;display:flex;align-items:center;justify-content:center"><div style="position:absolute;inset:0;border-radius:50%;border:1px solid rgba(92,225,255,.45);animation:pulseRing 2.4s ease-out infinite"></div><div style="position:absolute;inset:0;border-radius:50%;border:1px solid rgba(167,139,250,.45);animation:pulseRing 2.4s ease-out infinite 1.2s"></div><div style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#5ce1ff,#a78bfa);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:26px;color:#07080d;box-shadow:0 0 32px rgba(92,225,255,.6)">◈</div></div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.3em;color:#5ce1ff">LOS TRES PILARES</div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;width:100%"><div style="border:1px solid rgba(92,225,255,.3);background:rgba(92,225,255,.05);border-radius:16px;padding:28px 18px;display:flex;flex-direction:column;align-items:center;gap:12px"><div style="font-size:30px;color:#5ce1ff;animation:moveX 1.4s ease-in-out infinite alternate">◆</div><div style="font-family:'Space Grotesk';font-weight:700;font-size:clamp(18px,2vw,24px);color:#fff">DISEÑAR<br>ATENCIÓN</div></div><div style="border:1px solid rgba(52,211,153,.3);background:rgba(52,211,153,.05);border-radius:16px;padding:28px 18px;display:flex;flex-direction:column;align-items:center;gap:12px"><div style="font-size:30px;color:#34d399;animation:glowText 1.8s ease-in-out infinite">⟳</div><div style="font-family:'Space Grotesk';font-weight:700;font-size:clamp(18px,2vw,24px);color:#fff">DISEÑAR<br>FEEDBACK</div></div><div style="border:1px solid rgba(167,139,250,.3);background:rgba(167,139,250,.05);border-radius:16px;padding:28px 18px;display:flex;flex-direction:column;align-items:center;gap:12px"><div style="font-size:30px;color:#a78bfa">▲</div><div style="font-family:'Space Grotesk';font-weight:700;font-size:clamp(18px,2vw,24px);color:#fff">DISEÑAR<br>PROGRESO</div></div></div>
+              <p style="margin:6px 0 0;font-family:'Space Grotesk';font-weight:500;font-size:clamp(19px,2.6vw,32px);line-height:1.25;color:#fff;max-width:960px;text-wrap:balance">Los estudiantes no aprenden porque escuchan. Aprenden porque <span style="color:#5ce1ff">actúan</span>, reciben <span style="color:#34d399">retroalimentación</span> y avanzan <span style="color:#a78bfa">paso a paso</span>.</p>
+              <p style="margin:0;font-family:'Space Grotesk';font-weight:700;font-size:clamp(22px,3.4vw,42px);line-height:1.1;letter-spacing:-.01em;background:linear-gradient(90deg,#5ce1ff,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent">El éxito académico no ocurre por casualidad.<br>Se diseña.</p>
+              <div style="margin-top:4px;background:rgba(18,21,31,.6);border:1px solid rgba(92,225,255,.2);border-radius:14px;padding:14px 24px;display:flex;align-items:center;gap:16px"><span style="font-family:'Space Grotesk';font-weight:700;font-size:30px;color:#5ce1ff">{{ labCount }}</span><span style="font-size:14px;color:#aeb7c7;text-align:left">planes de clase diseñados hoy.<br><span style="color:#8b93a7;font-size:13px">Cada docente puede descargar el suyo desde su teléfono.</span></span></div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+
+      <sc-if value="{{ pollReveal }}" hint-placeholder-val="{{ false }}">
+        <div style="position:fixed;inset:0;z-index:60;background:rgba(5,6,11,.94);backdrop-filter:blur(10px);display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8vw;text-align:center;animation:fadeIn .5s ease both">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.3em;color:#5ce1ff;margin-bottom:28px;animation:fadeUp .6s .1s both">LA IDEA CENTRAL</div>
+          <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(30px,5.6vw,72px);line-height:1.08;letter-spacing:-.02em;margin:0;max-width:1100px;animation:fadeUp .7s .25s both;color:#fff">Todos creemos que enseñamos <span style="color:#5b6478;text-decoration:line-through;text-decoration-color:#fb7185">contenidos</span>.<br>En realidad, diseñamos <span style="background:linear-gradient(90deg,#5ce1ff,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent">conductas</span>.</h2>
+          <button onClick="{{ closeReveal }}" style="margin-top:44px;background:#fff;border:none;color:#07080d;font-weight:600;border-radius:11px;padding:13px 30px;font-size:15px;cursor:pointer;animation:fadeUp .7s .5s both">Continuar →</button>
+        </div>
+      </sc-if>
+
+      <button onClick="{{ prev }}" style="position:absolute;left:18px;top:50%;transform:translateY(-50%);z-index:35;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.14);background:rgba(18,21,31,.6);color:#cfd6e2;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);opacity:{{ prevOpacity }}" style-hover="border-color:#5ce1ff;color:#5ce1ff">‹</button>
+      <button onClick="{{ next }}" style="position:absolute;right:18px;top:50%;transform:translateY(-50%);z-index:35;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.14);background:rgba(18,21,31,.6);color:#cfd6e2;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);opacity:{{ nextOpacity }}" style-hover="border-color:#5ce1ff;color:#5ce1ff">›</button>
+
+      <div style="position:absolute;bottom:18px;left:50%;transform:translateX(-50%);z-index:35;display:flex;align-items:center;gap:7px;background:rgba(18,21,31,.6);border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:9px 14px;backdrop-filter:blur(8px)">
+        <sc-for list="{{ navItems }}" as="nv" hint-placeholder-count="9"><button onClick="{{ nv.onClick }}" title="{{ nv.label }}" style="display:flex;align-items:center;gap:7px;background:transparent;border:none;cursor:pointer;padding:5px 7px;border-radius:8px"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;transition:color .2s;color:{{ nv.numColor }}">{{ nv.num }}</span><span style="height:6px;border-radius:3px;transition:all .35s;width:{{ nv.dotW }};background:{{ nv.dotBg }}"></span></button></sc-for>
+      </div>
+      <button onClick="{{ toggleFs }}" title="Pantalla completa (F)" style="position:absolute;bottom:20px;right:20px;z-index:35;width:38px;height:38px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:rgba(18,21,31,.6);color:#8b93a7;cursor:pointer;backdrop-filter:blur(6px);font-size:15px;display:flex;align-items:center;justify-content:center" style-hover="color:#5ce1ff;border-color:#5ce1ff">⤢</button>
+    </div>
+  </sc-if>
+
+  <!-- ============================================================ PARTICIPANT ============================================================ -->
+  <sc-if value="{{ isParticipant }}" hint-placeholder-val="{{ false }}">
+    <div class="scrolly" style="position:absolute;inset:0;overflow-y:auto;display:flex;justify-content:center">
+      <div style="width:100%;max-width:480px;min-height:100%;display:flex;flex-direction:column;justify-content:flex-start;padding:64px 20px 40px">
+
+        <!-- JOIN -->
+        <sc-if value="{{ pShowJoin }}" hint-placeholder-val="{{ true }}">
+          <div class="rise" style="margin:auto 0;display:flex;flex-direction:column;gap:18px;text-align:center">
+            <div style="width:60px;height:60px;border:1.5px solid #5ce1ff;border-radius:14px;position:relative;margin:0 auto"><div style="position:absolute;inset:10px;border:1.5px solid rgba(92,225,255,.45);border-radius:6px"></div></div>
+            <div><h1 style="font-family:'Space Grotesk';font-weight:700;font-size:28px;margin:0 0 6px;color:#fff">Arquitectura del Aula</h1><p style="margin:0;color:#9aa3b5;font-size:15px">Está a punto de unirse a la conferencia en vivo.</p></div>
+            <div style="display:flex;flex-direction:column;gap:8px;text-align:left"><label style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.14em;color:#7c8499">SU NOMBRE (OPCIONAL)</label><input value="{{ nameDraft }}" onInput="{{ onName }}" placeholder="Ej. Prof. Martínez" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:14px 16px;color:#fff;font-size:16px;outline:none" style-focus="border-color:#5ce1ff"/></div>
+            <button onClick="{{ join }}" style="background:linear-gradient(90deg,#5ce1ff,#a78bfa);border:none;color:#07080d;font-weight:700;border-radius:13px;padding:15px;font-size:16px;cursor:pointer">Unirme a la conferencia</button>
+            <div style="font-size:12px;color:#5b6478">{{ connText }}</div>
+          </div>
+        </sc-if>
+
+        <!-- header strip when joined -->
+        <sc-if value="{{ pJoinedHeader }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px">
+            <div style="display:flex;align-items:center;gap:8px"><span style="width:7px;height:7px;border-radius:50%;background:#34d399;box-shadow:0 0 8px #34d399;animation:blink 1.4s infinite"></span><span style="font-family:'JetBrains Mono';font-size:11px;color:#aeb7c7">{{ myName }}</span></div>
+            <span style="font-family:'JetBrains Mono';font-size:10.5px;letter-spacing:.12em;color:#5ce1ff;border:1px solid rgba(92,225,255,.25);border-radius:999px;padding:4px 11px">{{ pChapterTag }}</span>
+          </div>
+        </sc-if>
+
+        <!-- WAIT -->
+        <sc-if value="{{ pIsWait }}" hint-placeholder-val="{{ false }}">
+          <div class="rise" style="margin:auto 0;display:flex;flex-direction:column;gap:20px;text-align:center;align-items:center">
+            <div style="position:relative;width:84px;height:84px;display:flex;align-items:center;justify-content:center"><div style="position:absolute;inset:0;border-radius:50%;border:1px solid rgba(92,225,255,.5);animation:pulseRing 2.2s ease-out infinite"></div><div style="position:absolute;inset:0;border-radius:50%;border:1px solid rgba(167,139,250,.5);animation:pulseRing 2.2s ease-out infinite 1.1s"></div><div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#5ce1ff,#a78bfa);display:flex;align-items:center;justify-content:center;color:#07080d;font-size:20px">✓</div></div>
+            <div><div style="font-family:'Space Grotesk';font-weight:700;font-size:22px;color:#fff">¡Está dentro, {{ myName }}!</div><p style="margin:8px 0 0;color:#9aa3b5;font-size:15px;line-height:1.5">Siga la pantalla principal. Su teléfono se activará automáticamente cuando haya algo que responder.</p></div>
+          </div>
+        </sc-if>
+
+        <!-- ch0 POLL -->
+        <sc-if value="{{ pIsPoll }}" hint-placeholder-val="{{ false }}">
+          <div class="rise" style="display:flex;flex-direction:column;gap:14px">
+            <h1 style="font-family:'Space Grotesk';font-weight:700;font-size:23px;line-height:1.2;margin:0;color:#fff">¿Cuál es el principal desafío que enfrenta hoy en sus clases?</h1>
+            <p style="margin:0;color:#8b93a7;font-size:14px">Toque una opción. Puede cambiarla.</p>
+            <div style="display:flex;flex-direction:column;gap:9px"><sc-for list="{{ pollOptions }}" as="o" hint-placeholder-count="7"><button onClick="{{ o.onClick }}" style="display:flex;align-items:center;gap:12px;text-align:left;border-radius:13px;padding:15px;font-size:16px;font-weight:500;cursor:pointer;transition:all .18s;background:{{ o.selBg }};border:1.5px solid {{ o.selBdr }};color:#fff"><span style="width:13px;height:13px;border-radius:5px;flex:none;background:{{ o.color }}"></span><span style="flex:1">{{ o.label }}</span><span style="color:{{ o.color }};font-size:16px">{{ o.selMark }}</span></button></sc-for></div>
+            <sc-if value="{{ pVoted }}" hint-placeholder-val="{{ false }}"><div style="border-top:1px solid rgba(255,255,255,.08);padding-top:14px;margin-top:4px"><div style="font-family:'JetBrains Mono';font-size:11px;color:#7c8499;margin-bottom:10px">RESULTADOS EN VIVO · {{ pPollTotal }} VOTOS</div><div style="display:flex;flex-direction:column;gap:8px"><sc-for list="{{ pPollBars }}" as="r" hint-placeholder-count="7"><div style="display:grid;grid-template-columns:1fr 44px;align-items:center;gap:10px"><span style="height:18px;border-radius:6px;background:rgba(255,255,255,.05);overflow:hidden"><span style="display:block;height:100%;border-radius:6px;transition:width .6s;width:{{ r.width }};background:{{ r.color }}"></span></span><span style="font-family:'JetBrains Mono';font-size:12px;color:#aeb7c7;text-align:right">{{ r.pctLabel }}</span></div></sc-for></div></div></sc-if>
+          </div>
+        </sc-if>
+
+        <!-- ch1 DIAGNÓSTICO -->
+        <sc-if value="{{ pIsDiag }}" hint-placeholder-val="{{ false }}">
+          <div class="rise" style="display:flex;flex-direction:column;gap:14px">
+            <div><div style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.18em;color:#5ce1ff">DIAGNÓSTICO EXPRESS</div><h1 style="font-family:'Space Grotesk';font-weight:700;font-size:22px;line-height:1.2;margin:6px 0 0;color:#fff">¿Cómo es su aula hoy?</h1><p style="margin:6px 0 0;color:#8b93a7;font-size:13.5px">1 = Nunca · 5 = Siempre</p></div>
+            <sc-if value="{{ diagNotSent }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <sc-for list="{{ diagItems }}" as="d" hint-placeholder-count="10"><div style="border:1px solid {{ d.rowBdr }};background:{{ d.rowBg }};border-radius:12px;padding:13px 14px;display:flex;flex-direction:column;gap:10px"><div style="display:flex;gap:9px;align-items:baseline"><span style="font-family:'JetBrains Mono';font-size:12px;color:#5ce1ff">{{ d.n }}</span><span style="font-size:14px;color:#dfe5ef;line-height:1.35">{{ d.q }}</span></div><div style="display:flex;gap:7px;justify-content:space-between"><sc-for list="{{ d.scale }}" as="s" hint-placeholder-count="5"><button onClick="{{ s.onClick }}" style="flex:1;height:42px;border-radius:9px;cursor:pointer;font-family:'JetBrains Mono';font-size:15px;font-weight:700;transition:all .15s;background:{{ s.bg }};color:{{ s.col }};border:1px solid {{ s.bdr }}">{{ s.v }}</button></sc-for></div></div></sc-for>
+                <div style="display:flex;align-items:center;gap:12px;position:sticky;bottom:0;background:#07080d;padding:10px 0"><span style="flex:1;height:7px;border-radius:5px;background:rgba(255,255,255,.06);overflow:hidden"><span style="display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,#5ce1ff,#a78bfa);transition:width .4s;width:{{ diagAnsweredW }}"></span></span><span style="font-family:'JetBrains Mono';font-size:11px;color:#8b93a7">{{ diagAnswered }}/10</span></div>
+                <button onClick="{{ sendDiag }}" style="border:none;color:#07080d;font-weight:700;border-radius:12px;padding:15px;font-size:16px;cursor:pointer;background:{{ diagSendBg }};opacity:{{ diagSendOpacity }}">Enviar mi resultado</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{ diagSent }}" hint-placeholder-val="{{ false }}">
+              <div style="border:1px solid {{ profBorder }};background:{{ profBg }};border-radius:16px;padding:22px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;animation:fadeUp .5s ease both">
+                <div style="position:relative;width:140px;height:140px"><svg viewBox="0 0 160 160" style="width:140px;height:140px;transform:rotate(-90deg)"><circle cx="80" cy="80" r="66" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="13"></circle><circle cx="80" cy="80" r="66" fill="none" stroke="{{ gaugeColor }}" stroke-width="13" stroke-linecap="round" stroke-dasharray="{{ gaugeDash }}" stroke-dashoffset="{{ gaugeOffset }}" style="transition:stroke-dashoffset .9s ease"></circle></svg><div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font-family:'Space Grotesk';font-weight:700;font-size:38px;color:#fff;line-height:1">{{ diagTotal }}</span><span style="font-family:'JetBrains Mono';font-size:10px;color:#8b93a7">de 50</span></div></div>
+                <div><span style="font-size:28px;color:{{ gaugeColor }}">{{ profIcon }}</span><div style="font-family:'Space Grotesk';font-weight:700;font-size:22px;color:#fff;margin-top:4px">{{ profName }}</div></div>
+                <p style="margin:0;font-size:14px;color:#cbd3e1;line-height:1.5">{{ profDesc }}</p>
+                <div style="font-family:'JetBrains Mono';font-size:11px;color:#34d399">✓ Resultado enviado a la sala</div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <!-- ch2/3/5 FOLLOW-ALONG -->
+        <sc-if value="{{ pIsFollow }}" hint-placeholder-val="{{ false }}">
+          <div class="rise" style="margin:auto 0;display:flex;flex-direction:column;gap:16px;text-align:center;align-items:center">
+            <div style="font-size:40px;color:{{ followColor }}">{{ followIcon }}</div>
+            <div style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.18em;color:{{ followColor }}">{{ followTag }}</div>
+            <h1 style="font-family:'Space Grotesk';font-weight:700;font-size:24px;line-height:1.2;margin:0;color:#fff">{{ followTitle }}</h1>
+            <p style="margin:0;font-size:16px;color:#cbd3e1;line-height:1.55">{{ followIdea }}</p>
+            <div style="margin-top:6px;font-family:'JetBrains Mono';font-size:11px;color:#5b6478;display:flex;align-items:center;gap:8px"><span style="width:6px;height:6px;border-radius:50%;background:#5ce1ff;animation:blink 1.4s infinite"></span>Siga la pantalla principal</div>
+          </div>
+        </sc-if>
+
+        <!-- ch4 SEMÁFORO -->
+        <sc-if value="{{ pIsSem }}" hint-placeholder-val="{{ false }}">
+          <div class="rise" style="display:flex;flex-direction:column;gap:16px">
+            <div><div style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.18em;color:#34d399">SEMÁFORO DE APRENDIZAJE</div><h1 style="font-family:'Space Grotesk';font-weight:700;font-size:23px;line-height:1.2;margin:6px 0 0;color:#fff">¿Cómo va su comprensión ahora?</h1><p style="margin:6px 0 0;color:#8b93a7;font-size:14px">Toque su estado. Puede actualizarlo en cualquier momento.</p></div>
+            <div style="display:flex;flex-direction:column;gap:11px"><sc-for list="{{ semOptions }}" as="o" hint-placeholder-count="3"><button onClick="{{ o.onClick }}" style="display:flex;align-items:center;gap:14px;text-align:left;border-radius:14px;padding:18px;font-size:17px;font-weight:600;cursor:pointer;transition:all .18s;background:{{ o.selBg }};border:1.5px solid {{ o.selBdr }};color:#fff"><span style="width:20px;height:20px;border-radius:50%;flex:none;background:{{ o.color }};box-shadow:0 0 12px {{ o.color }}"></span><span style="flex:1">{{ o.label }}</span><span style="color:{{ o.color }};font-size:18px">{{ o.selMark }}</span></button></sc-for></div>
+            <sc-if value="{{ semSet }}" hint-placeholder-val="{{ false }}"><div style="border-top:1px solid rgba(255,255,255,.08);padding-top:14px"><div style="font-family:'JetBrains Mono';font-size:11px;color:#7c8499;margin-bottom:10px">PULSO DE LA SALA · {{ pSemTotal }}</div><div style="display:flex;flex-direction:column;gap:8px"><sc-for list="{{ pSemBars }}" as="r" hint-placeholder-count="3"><div style="display:grid;grid-template-columns:90px 1fr 40px;align-items:center;gap:8px"><span style="font-size:12.5px;color:#aeb7c7">{{ r.label }}</span><span style="height:16px;border-radius:6px;background:rgba(255,255,255,.05);overflow:hidden"><span style="display:block;height:100%;border-radius:6px;transition:width .6s;width:{{ r.width }};background:{{ r.color }}"></span></span><span style="font-family:'JetBrains Mono';font-size:12px;color:#aeb7c7;text-align:right">{{ r.pctLabel }}</span></div></sc-for></div></div></sc-if>
+          </div>
+        </sc-if>
+
+        <!-- ch6 GENERACIONES -->
+        <sc-if value="{{ pIsGen }}" hint-placeholder-val="{{ false }}">
+          <div class="rise" style="display:flex;flex-direction:column;gap:16px">
+            <div><div style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.18em;color:#ffb84d">GENERACIONES</div><h1 style="font-family:'Space Grotesk';font-weight:700;font-size:23px;line-height:1.2;margin:6px 0 0;color:#fff">¿Con qué generación se identifica más su grupo?</h1></div>
+            <div style="display:flex;flex-direction:column;gap:10px"><sc-for list="{{ genOptions }}" as="o" hint-placeholder-count="3"><button onClick="{{ o.onClick }}" style="display:flex;flex-direction:column;gap:3px;text-align:left;border-radius:14px;padding:16px;cursor:pointer;transition:all .18s;background:{{ o.selBg }};border:1.5px solid {{ o.selBdr }}"><span style="font-family:'Space Grotesk';font-weight:600;font-size:17px;color:#fff">{{ o.name }}</span><span style="font-size:13px;color:#9aa3b5">{{ o.age }}</span></button></sc-for></div>
+            <sc-if value="{{ genSet }}" hint-placeholder-val="{{ false }}"><div style="border:1px solid rgba(92,225,255,.25);background:rgba(92,225,255,.05);border-radius:14px;padding:18px;animation:fadeUp .5s ease both"><div style="font-family:'JetBrains Mono';font-size:10.5px;letter-spacing:.16em;color:#5ce1ff;margin-bottom:8px">ESTRATEGIA PARA {{ myGenName }}</div><p style="margin:0 0 14px;font-size:15.5px;color:#fff;line-height:1.5;font-weight:500">{{ myGenStrategy }}</p><div style="font-family:'JetBrains Mono';font-size:11px;color:#7c8499;margin-bottom:8px">DISTRIBUCIÓN DE LA SALA</div><div style="display:flex;flex-direction:column;gap:7px"><sc-for list="{{ pGenBars }}" as="r" hint-placeholder-count="3"><div style="display:grid;grid-template-columns:120px 1fr 40px;align-items:center;gap:8px"><span style="font-size:12.5px;color:#aeb7c7">{{ r.name }}</span><span style="height:14px;border-radius:6px;background:rgba(255,255,255,.05);overflow:hidden"><span style="display:block;height:100%;border-radius:6px;transition:width .6s;width:{{ r.width }};background:{{ r.color }}"></span></span><span style="font-family:'JetBrains Mono';font-size:12px;color:#aeb7c7;text-align:right">{{ r.pctLabel }}</span></div></sc-for></div></div></sc-if>
+          </div>
+        </sc-if>
+
+        <!-- ch7 LABORATORIO -->
+        <sc-if value="{{ pIsLab }}" hint-placeholder-val="{{ false }}">
+          <div class="rise" style="display:flex;flex-direction:column;gap:14px">
+            <div><div style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.18em;color:#5ce1ff">LABORATORIO DOCENTE</div><h1 style="font-family:'Space Grotesk';font-weight:700;font-size:22px;line-height:1.2;margin:6px 0 0;color:#fff">Diseñe su próxima clase</h1><p style="margin:6px 0 0;color:#8b93a7;font-size:13.5px">Elija una estrategia por etapa.</p></div>
+            <sc-for list="{{ labSections }}" as="sec" hint-placeholder-count="3"><div style="display:flex;flex-direction:column;gap:9px"><div style="font-family:'Space Grotesk';font-weight:600;font-size:14px;color:{{ sec.color }}">{{ sec.title }}</div><div style="display:flex;flex-direction:column;gap:7px"><sc-for list="{{ sec.options }}" as="opt" hint-placeholder-count="4"><button onClick="{{ opt.onClick }}" style="display:flex;align-items:center;gap:10px;text-align:left;font-size:14.5px;border-radius:10px;padding:13px 14px;cursor:pointer;transition:all .18s;background:{{ opt.bg }};border:1px solid {{ opt.bdr }};color:{{ opt.col }}"><span style="font-size:11px;color:{{ sec.color }}">{{ opt.mark }}</span>{{ opt.label }}</button></sc-for></div></div></sc-for>
+            <button onClick="{{ genModelFn }}" style="border:none;color:#07080d;font-weight:700;border-radius:12px;padding:15px;font-size:16px;cursor:pointer;background:{{ labBtnBg }};opacity:{{ labReadyOpacity }}">⚡ Generar mi clase</button>
+            <sc-if value="{{ labDone }}" hint-placeholder-val="{{ false }}">
+              <div style="border:1px solid rgba(92,225,255,.3);background:linear-gradient(135deg,rgba(92,225,255,.08),rgba(167,139,250,.06));border-radius:16px;padding:20px;animation:fadeUp .5s ease both;display:flex;flex-direction:column;gap:12px">
+                <div style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.16em;color:#5ce1ff">SU MODELO DE CLASE</div>
+                <div style="border-left:3px solid #5ce1ff;padding-left:13px"><div style="font-size:12px;color:#8b93a7">Apertura · captar atención</div><div style="font-size:16px;color:#fff;font-weight:600">{{ labAtencion }}</div></div>
+                <div style="border-left:3px solid #34d399;padding-left:13px"><div style="font-size:12px;color:#8b93a7">Desarrollo · feedback (regla 10–2)</div><div style="font-size:16px;color:#fff;font-weight:600">{{ labFeedback }}</div></div>
+                <div style="border-left:3px solid #a78bfa;padding-left:13px"><div style="font-size:12px;color:#8b93a7">Cierre · micro-progreso</div><div style="font-size:16px;color:#fff;font-weight:600">{{ labProgreso }}</div></div>
+                <button onClick="{{ printPlan }}" style="background:#fff;border:none;color:#07080d;font-weight:700;border-radius:11px;padding:14px;font-size:15px;cursor:pointer;margin-top:4px">⬇ Descargar mi plan (PDF)</button>
+                <button onClick="{{ resetLab }}" style="background:transparent;border:1px solid rgba(255,255,255,.15);color:#aeb7c7;border-radius:10px;padding:11px;font-size:13px;cursor:pointer">Rediseñar</button>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <!-- ch8 CIERRE -->
+        <sc-if value="{{ pIsClose }}" hint-placeholder-val="{{ false }}">
+          <div class="rise" style="margin:auto 0;display:flex;flex-direction:column;gap:18px;text-align:center;align-items:center">
+            <div style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#5ce1ff,#a78bfa);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:24px;color:#07080d">◈</div>
+            <h1 style="font-family:'Space Grotesk';font-weight:700;font-size:25px;line-height:1.15;margin:0;color:#fff">Gracias, {{ myName }}</h1>
+            <p style="margin:0;font-size:16px;color:#cbd3e1;line-height:1.55">El éxito académico no ocurre por casualidad. <span style="color:#5ce1ff">Se diseña.</span> Diseñe atención, feedback y progreso en cada clase.</p>
+            <div style="display:flex;gap:8px;width:100%"><div style="flex:1;border:1px solid rgba(92,225,255,.3);background:rgba(92,225,255,.06);border-radius:12px;padding:14px 6px"><div style="font-size:20px;color:#5ce1ff">◆</div><div style="font-size:11px;color:#fff;font-weight:600;margin-top:5px">ATENCIÓN</div></div><div style="flex:1;border:1px solid rgba(52,211,153,.3);background:rgba(52,211,153,.06);border-radius:12px;padding:14px 6px"><div style="font-size:20px;color:#34d399">⟳</div><div style="font-size:11px;color:#fff;font-weight:600;margin-top:5px">FEEDBACK</div></div><div style="flex:1;border:1px solid rgba(167,139,250,.3);background:rgba(167,139,250,.06);border-radius:12px;padding:14px 6px"><div style="font-size:20px;color:#a78bfa">▲</div><div style="font-size:11px;color:#fff;font-weight:600;margin-top:5px">PROGRESO</div></div></div>
+            <sc-if value="{{ hasPlan }}" hint-placeholder-val="{{ false }}"><button onClick="{{ printPlan }}" style="background:#fff;border:none;color:#07080d;font-weight:700;border-radius:12px;padding:14px 26px;font-size:15px;cursor:pointer">⬇ Descargar mi plan de clase (PDF)</button></sc-if>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+
+<!-- PRINT-ONLY plan -->
+<div id="plan-print" style="font-family:'Instrument Sans',sans-serif;color:#0a0a14;padding:48px 56px;max-width:760px;margin:0 auto">
+  <div style="border-bottom:3px solid #0a0a14;padding-bottom:14px;margin-bottom:24px"><div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.2em;color:#5b6478">ARQUITECTURA DEL AULA · PLAN DE ACCIÓN DOCENTE</div><div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:30px;margin-top:8px">{{ planName }}</div></div>
+  <div style="margin-bottom:26px"><div style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.16em;color:#5b6478;margin-bottom:6px">SU DIAGNÓSTICO</div><div style="font-size:20px;font-weight:600">{{ planProfile }}</div></div>
+  <div style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.16em;color:#5b6478;margin-bottom:14px">SU MODELO DE CLASE INNOVADORA</div>
+  <div style="border:1px solid #d8dbe0;border-radius:10px;overflow:hidden">
+    <div style="display:flex;border-bottom:1px solid #d8dbe0"><div style="width:170px;background:#f3f5f8;padding:16px;font-weight:600;border-right:1px solid #d8dbe0">Apertura · atención</div><div style="padding:16px;font-size:17px">{{ planAtencion }}</div></div>
+    <div style="display:flex;border-bottom:1px solid #d8dbe0"><div style="width:170px;background:#f3f5f8;padding:16px;font-weight:600;border-right:1px solid #d8dbe0">Desarrollo · feedback</div><div style="padding:16px;font-size:17px">{{ planFeedback }}</div></div>
+    <div style="display:flex"><div style="width:170px;background:#f3f5f8;padding:16px;font-weight:600;border-right:1px solid #d8dbe0">Cierre · progreso</div><div style="padding:16px;font-size:17px">{{ planProgreso }}</div></div>
+  </div>
+  <p style="margin:28px 0 0;font-size:15px;line-height:1.6;color:#3a3f4a">Aplique la <strong>regla 10–2</strong> (cada 10 min de exposición, 2 min de actividad), dé <strong>feedback inmediato</strong> y divida la competencia en <strong>micro-pasos</strong>. Una clase que captura, retroalimenta y avanza.</p>
+  <div style="margin-top:34px;font-family:'JetBrains Mono';font-size:11px;color:#9aa0ab">El éxito académico no ocurre por casualidad. Se diseña.</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.CHAPTERS=[{num:'00',label:'Apertura'},{num:'01',label:'Diagnóstico'},{num:'02',label:'El Arquitecto'},{num:'03',label:'Atención'},{num:'04',label:'Feedback'},{num:'05',label:'Micro-progresos'},{num:'06',label:'Generaciones'},{num:'07',label:'Laboratorio'},{num:'08',label:'Cierre'}];
+    this.POLL=[{id:'atencion',label:'Falta de atención',color:'#5ce1ff'},{id:'participacion',label:'Baja participación',color:'#ffb84d'},{id:'ia',label:'Uso excesivo de IA',color:'#a78bfa'},{id:'lectura',label:'Poca lectura',color:'#34d399'},{id:'motivacion',label:'Escasa motivación',color:'#fb7185'},{id:'ausentismo',label:'Ausentismo',color:'#f472d0'},{id:'otras',label:'Otras',color:'#94a3b8'}];
+    this.PROFESSIONS=[{role:'Ingeniero',icon:'⬡',designs:'estructuras',accent:'#8b93a7',border:'rgba(255,255,255,.08)',bg:'rgba(255,255,255,.02)'},{role:'Arquitecto',icon:'◳',designs:'espacios',accent:'#8b93a7',border:'rgba(255,255,255,.08)',bg:'rgba(255,255,255,.02)'},{role:'Abogado',icon:'§',designs:'normas',accent:'#8b93a7',border:'rgba(255,255,255,.08)',bg:'rgba(255,255,255,.02)'},{role:'Docente',icon:'◈',designs:'experiencias de aprendizaje',accent:'#5ce1ff',border:'rgba(92,225,255,.4)',bg:'rgba(92,225,255,.07)'}];
+    this.WANTED=['Participar','Preguntar','Investigar','Resolver problemas','Colaborar','Leer'];
+    this.UNWANTED=['Distracción','Pasividad','Ausentismo','Copia mecánica','Desinterés'];
+    this.OPENINGS={ingenieria:{f:'Ingeniería',bad:'“Buenos días, hoy veremos análisis estructural.”',good:'“Si este puente colapsa con 200 personas encima, ¿qué cálculo falló?”'},arquitectura:{f:'Arquitectura',bad:'“Hoy veremos diseño de espacios reducidos.”',good:'“Tienen 40 m² para una familia de cinco. ¿Cómo evitan que vivan en una caja?”'},economia:{f:'Economía',bad:'“Hoy veremos indicadores financieros.”',good:'“Su empresa perdió $500 mil este trimestre. ¿Qué indicador lo anticipaba?”'},derecho:{f:'Derecho',bad:'“Buenos días, hoy veremos Derecho Mercantil.”',good:'“Si mañana demandan a su empresa por medio millón, ¿qué error legal lo causó?”'}};
+    this.FAC_KEYS=['ingenieria','arquitectura','economia','derecho'];
+    this.ACTIVITIES=['Encuesta relámpago','Caso breve','Mini-debate','Kahoot','Votación','Prompt con IA'];
+    this.LADDERS={ingenieria:{goal:'Desarrollar software',steps:['Variables','Funciones','Algoritmos','Integración','Proyecto final']},derecho:{goal:'Redactar una demanda',steps:['Identificar hechos','Identificar normas','Analizar jurisprudencia','Argumentar','Redactar']},economia:{goal:'Construir un plan financiero',steps:['Recolección de datos','Interpretación','Análisis','Proyección','Presentación ejecutiva']}};
+    this.GENERATIONS={z:{name:'Generación Z',age:'18 – 26 años',formats:'Video corto · retos visuales · móvil · gamificación',reinforce:'Reconocimiento inmediato · badges · ranking',strategy:'Fragmenta el contenido y usa retos cronometrados con respuesta instantánea.'},mil:{name:'Millennials',age:'27 – 40 años',formats:'Proyectos colaborativos · casos aplicados · herramientas digitales',reinforce:'Propósito · crecimiento profesional · autonomía',strategy:'Conecta cada tema con su impacto profesional y da espacio para colaborar.'},adt:{name:'Adultos trabajadores',age:'30+ años',formats:'Casos reales · aplicación directa · sesiones flexibles',reinforce:'Eficiencia · aplicabilidad inmediata · respeto a su experiencia',strategy:'Prioriza lo aplicable hoy mismo y valida su experiencia previa.'}};
+    this.GEN_KEYS=['z','mil','adt'];
+    this.GEN_COLORS={z:'#ffb84d',mil:'#5ce1ff',adt:'#a78bfa'};
+    this.LABDEF={atencion:{title:'1 · Atención',color:'#5ce1ff',options:['Pregunta de alto impacto','Caso real o dilema','Dato sorprendente','Reto cronometrado']},feedback:{title:'2 · Feedback',color:'#34d399',options:['Semáforo de comprensión','Kahoot / Quizizz','Mentimeter en vivo','Revisión entre pares']},progreso:{title:'3 · Micro-progreso',color:'#a78bfa',options:['Escalera de micro-metas','Entregas incrementales','Rúbrica por niveles','Proyecto por etapas']}};
+    this.MODS=[{n:'1',label:'Arquitecto',ch:2},{n:'2',label:'Atención',ch:3},{n:'3',label:'Feedback',ch:4},{n:'4',label:'Progreso',ch:5},{n:'5',label:'Generaciones',ch:6},{n:'6',label:'Laboratorio',ch:7}];
+    this.DIAG_Q=['Cambio de actividad al menos una vez cada 10–15 minutos.','Utilizo preguntas o dinámicas para mantener la participación.','Proporciono retroalimentación durante la clase, no solo en los exámenes.','Mis estudiantes realizan actividades prácticas durante la sesión.','Relaciono los contenidos con problemas reales de la profesión.','Utilizo herramientas digitales o IA para apoyar el aprendizaje.','Divido competencias complejas en pequeños pasos de aprendizaje.','Verifico constantemente si los estudiantes están comprendiendo.','Mis estudiantes participan activamente más del 30% del tiempo de clase.','Ajusto mi metodología según las respuestas y necesidades del grupo.'];
+    this.DIAG_SCALE=[{v:1,l:'Nunca'},{v:2,l:'Rara vez'},{v:3,l:'Algunas veces'},{v:4,l:'Frecuentemente'},{v:5,l:'Siempre'}];
+    this.DIAG_COLORS=['#fb7185','#f59e6b','#ffb84d','#9bd36a','#34d399'];
+    this.DIAG_PROFILES=[{min:10,max:25,name:'Aula Tradicional',color:'#fb7185',icon:'▤',desc:'La enseñanza se centra en la exposición del docente. Hay gran oportunidad para incorporar participación, feedback y práctica.'},{min:26,max:40,name:'Aula en Transición',color:'#ffb84d',icon:'◑',desc:'Ya hay prácticas activas, pero se puede fortalecer la participación continua y el diseño conductual.'},{min:41,max:50,name:'Aula de Alto Impacto',color:'#34d399',icon:'◆',desc:'La experiencia está diseñada estratégicamente para generar atención, participación y progreso continuo.'}];
+    this.FOLLOW={2:{tag:'BLOQUE 02',color:'#5ce1ff',icon:'◈',title:'El docente como arquitecto',idea:'No solo enseñamos contenidos: diseñamos conductas. Si algo ocurre con frecuencia en su aula, el entorno lo está favoreciendo.'},3:{tag:'BLOQUE 03',color:'#5ce1ff',icon:'◆',title:'Diseño de la atención',idea:'Movimiento, novedad, contraste, relevancia y desafío capturan la atención. Regla 10–2: cada 10 min de exposición, 2 de actividad.'},5:{tag:'BLOQUE 05',color:'#a78bfa',icon:'▲',title:'Micro-progresos',idea:'Nadie domina una competencia compleja de una sola vez. Divídala en pasos pequeños, ordenados y alcanzables.'}};
+    const BASE='arqaula/upes2026';
+    this.T={join:BASE+'/join',hb:BASE+'/hb',state:BASE+'/state',agg:BASE+'/agg',vote:BASE+'/vote',sem:BASE+'/sem',diag:BASE+'/diag',gen:BASE+'/gen',lab:BASE+'/lab'};
+    let id=null; try{id=localStorage.getItem('arqaula_id');}catch(e){}
+    if(!id){id='u'+Math.random().toString(16).slice(2,10); try{localStorage.setItem('arqaula_id',id);}catch(e){}}
+    this.myId=id;
+    let detected='presenter';
+    try{const p=new URLSearchParams(location.search); if(p.get('role')==='participant'||location.hash.indexOf('join')>=0) detected='participant';}catch(e){}
+    this.detectedRole=detected;
+    this.state={
+      roleOverride:null, connected:false,
+      chapter:0, pollReveal:false,
+      faculty:'ingenieria', minute:25,
+      raceA:0, raceB:0,
+      ladderField:'ingenieria', slots:[null,null,null,null,null], pool:this.shuffle([0,1,2,3,4]), dragId:null,
+      gen:'z',
+      // realtime by-id maps (presenter)
+      participants:{}, votesById:{}, semById:{}, diagById:{}, genById:{}, labById:{},
+      // participant local
+      joined:false, nameDraft:'', myName:'',
+      myVote:null, mySem:null, myGen:null,
+      diag:Array(10).fill(null), diagSent:false,
+      lab:{atencion:null,feedback:null,progreso:null}, labDone:false,
+      // participant received
+      pChapter:null, pAgg:null,
+    };
+  }
+  shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  attTrad(m){return Math.max(4,95*Math.exp(-m/18));}
+  attDesign(m){const p=m%12;const lo=90*Math.exp(-10/16);let a;if(p<10){a=90*Math.exp(-p/16);}else{a=lo+((p-10)/2)*(90-lo);}return Math.max(20,a);}
+  effRole(){return this.state.roleOverride||this.detectedRole;}
+  qrUrl(){try{const u=new URL(location.href);u.searchParams.set('role','participant');u.hash='';return u.toString();}catch(e){return location.href;}}
+
+  componentDidMount(){
+    this._key=(e)=>{ if(this.effRole()!=='presenter')return; if(this.state.pollReveal){if(e.key==='Escape')this.setState({pollReveal:false});return;} if(['ArrowRight','PageDown'].includes(e.key))this.next(); else if(['ArrowLeft','PageUp'].includes(e.key))this.prev(); else if(e.key==='f'||e.key==='F')this.toggleFs(); };
+    window.addEventListener('keydown',this._key);
+    this.waitLib(()=>this.connect(this.effRole()));
+    this.pruneTimer=setInterval(()=>{const now=Date.now();let ch=false;const p={...this.state.participants};Object.keys(p).forEach(k=>{if(now-p[k].ts>22000){delete p[k];ch=true;}});if(ch)this.setState({participants:p});},5000);
+    this.syncChapters(); this.maybeQR();
+  }
+  componentDidUpdate(){ this.syncChapters(); this.maybeQR(); }
+  componentWillUnmount(){ window.removeEventListener('keydown',this._key); clearInterval(this.pruneTimer); clearInterval(this.hbTimer); clearInterval(this._raceT); try{this.client&&this.client.end(true);}catch(e){} }
+  waitLib(cb,n){n=n||0; if(window.mqtt){cb();} else if(n<60){setTimeout(()=>this.waitLib(cb,n+1),100);}}
+
+  syncChapters(){ if(this.effRole()!=='presenter')return; const wrap=document.getElementById('chapter-wrap'); if(!wrap)return; [...wrap.children].forEach((el,i)=>{const on=i===this.state.chapter; el.style.display=on?'flex':'none'; if(on)el.scrollTop=0;}); }
+  maybeQR(){ if(this.effRole()!=='presenter'||this.state.chapter!==0)return; const box=document.getElementById('qrbox'); if(!box||!window.QRCode)return; const url=this.qrUrl(); if(box.getAttribute('data-url')===url)return; box.innerHTML=''; box.setAttribute('data-url',url); try{new window.QRCode(box,{text:url,width:170,height:170,colorDark:'#0a0a14',colorLight:'#ffffff',correctLevel:window.QRCode.CorrectLevel.M});}catch(e){} }
+
+  connect(role){
+    try{if(this.client)this.client.end(true);}catch(e){}
+    clearInterval(this.hbTimer); this.setState({connected:false});
+    const c=window.mqtt.connect('wss://broker.emqx.io:8084/mqtt',{clientId:'arq_'+role+'_'+Math.random().toString(16).slice(2,8),clean:true,reconnectPeriod:2500,connectTimeout:8000,keepalive:30});
+    this.client=c;
+    c.on('connect',()=>{ this.setState({connected:true}); if(this.effRole()==='presenter'){ c.subscribe([this.T.join,this.T.hb,this.T.vote,this.T.sem,this.T.diag,this.T.gen,this.T.lab]); this.pubState(); this.pubAgg(); } else { c.subscribe([this.T.state,this.T.agg]); if(this.state.joined)this.publishJoin(); } });
+    c.on('message',(t,p)=>this.onMsg(t,p));
+    c.on('close',()=>this.setState({connected:false}));
+    c.on('error',()=>{});
+  }
+  onMsg(topic,buf){
+    let d={}; try{d=JSON.parse(buf.toString());}catch(e){return;}
+    if(this.effRole()==='presenter'){
+      if(topic===this.T.join||topic===this.T.hb){ if(!d.id)return; this.setState(s=>({participants:{...s.participants,[d.id]:{name:d.name||'',ts:Date.now()}}})); }
+      else if(topic===this.T.vote){ if(!d.id)return; this.setState(s=>({votesById:{...s.votesById,[d.id]:d.option}}),()=>this.pubAgg()); }
+      else if(topic===this.T.sem){ if(!d.id)return; this.setState(s=>({semById:{...s.semById,[d.id]:d.state}}),()=>this.pubAgg()); }
+      else if(topic===this.T.diag){ if(!d.id)return; this.setState(s=>({diagById:{...s.diagById,[d.id]:{total:d.total,profileIdx:d.profileIdx}}}),()=>this.pubAgg()); }
+      else if(topic===this.T.gen){ if(!d.id)return; this.setState(s=>({genById:{...s.genById,[d.id]:d.gen}}),()=>this.pubAgg()); }
+      else if(topic===this.T.lab){ if(!d.id)return; this.setState(s=>({labById:{...s.labById,[d.id]:{name:d.name,atencion:d.atencion,feedback:d.feedback,progreso:d.progreso,ts:Date.now()}}}),()=>this.pubAgg()); }
+    } else {
+      if(topic===this.T.state){ this.setState({pChapter:d.chapter}); }
+      else if(topic===this.T.agg){ this.setState({pAgg:d}); }
+    }
+  }
+  pubState(){ if(this.client&&this.state.connected)this.client.publish(this.T.state,JSON.stringify({chapter:this.state.chapter}),{retain:true}); }
+  pubAgg(){
+    if(!(this.client&&this.state.connected))return;
+    const s=this.state;
+    const poll={}; let pt=0; Object.values(s.votesById).forEach(o=>{poll[o]=(poll[o]||0)+1;pt++;});
+    const sem={verde:0,amarillo:0,rojo:0}; Object.values(s.semById).forEach(v=>{if(sem[v]!=null)sem[v]++;});
+    let dc=0,dsum=0,prof=[0,0,0]; Object.values(s.diagById).forEach(o=>{dc++;dsum+=o.total||0;if(o.profileIdx!=null)prof[o.profileIdx]++;});
+    const gen={z:0,mil:0,adt:0}; Object.values(s.genById).forEach(g=>{if(gen[g]!=null)gen[g]++;});
+    const agg={poll:{counts:poll,total:pt},sem,diag:{count:dc,avg:dc?Math.round(dsum/dc):0,profiles:prof},gen,lab:{count:Object.keys(s.labById).length}};
+    this.client.publish(this.T.agg,JSON.stringify(agg),{retain:true});
+  }
+  publishJoin(){ if(this.client)this.client.publish(this.T.join,JSON.stringify({id:this.myId,name:this.state.myName})); }
+  startHb(){ clearInterval(this.hbTimer); this.hbTimer=setInterval(()=>{if(this.client&&this.state.connected)this.client.publish(this.T.hb,JSON.stringify({id:this.myId,name:this.state.myName}));},7000); }
+
+  // presenter nav
+  next(){ this.setState(s=>({chapter:Math.min(s.chapter+1,this.CHAPTERS.length-1)}),()=>this.pubState()); }
+  prev(){ this.setState(s=>({chapter:Math.max(s.chapter-1,0)}),()=>this.pubState()); }
+  goTo(i){ this.setState({chapter:i},()=>this.pubState()); }
+  toggleFs(){ try{if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();}catch(e){} }
+  // presenter synthetic + reset
+  addVote(opt){ this.setState(s=>({votesById:{...s.votesById,['syn'+Math.random().toString(16).slice(2,8)]:opt}}),()=>this.pubAgg()); }
+  resetPoll(){ this.setState(s=>{const v={};Object.keys(s.votesById).forEach(k=>{if(!k.startsWith('syn'))v[k]=s.votesById[k];});return {votesById:v};},()=>this.pubAgg()); }
+  resetSem(){ this.setState(s=>{const v={};Object.keys(s.semById).forEach(k=>{if(!k.startsWith('syn'))v[k]=s.semById[k];});return {semById:v};},()=>this.pubAgg()); }
+  // presenter explorers
+  setFaculty(f){this.setState({faculty:f});}
+  setLadderField(f){this.setState({ladderField:f,slots:[null,null,null,null,null],pool:this.shuffle([0,1,2,3,4]),dragId:null});}
+  selectStep(id){this.setState(s=>({dragId:s.dragId===id?null:id}));}
+  dropOn(i){this.setState(s=>{if(s.dragId==null||s.slots[i]!=null)return {};const slots=s.slots.slice();slots[i]=s.dragId;return {slots,pool:s.pool.filter(x=>x!==s.dragId),dragId:null};});}
+  returnToPool(i){this.setState(s=>{const id=s.slots[i];if(id==null)return {};const slots=s.slots.slice();slots[i]=null;return {slots,pool:[...s.pool,id]};});}
+  resetLadder(){this.setState({slots:[null,null,null,null,null],pool:this.shuffle([0,1,2,3,4]),dragId:null});}
+  setGen(g){this.setState({gen:g});}
+  runRace(){clearInterval(this._raceT);this.setState({raceA:0,raceB:0});this._raceT=setInterval(()=>{this.setState(s=>{const raceA=Math.min(100,s.raceA+5.5);const raceB=Math.min(100,s.raceB+1.1);if(raceA>=100){clearInterval(this._raceT);return {raceA:100,raceB};}return {raceA,raceB};});},70);}
+  // participant
+  join(){const nm=(this.state.nameDraft||'').trim()||('Docente '+this.myId.slice(-4));this.setState({joined:true,myName:nm},()=>{this.publishJoin();this.startHb();});}
+  sendVote(opt){this.setState({myVote:opt});if(this.client&&this.state.connected)this.client.publish(this.T.vote,JSON.stringify({id:this.myId,option:opt}));}
+  sendSem(st){this.setState({mySem:st});if(this.client&&this.state.connected)this.client.publish(this.T.sem,JSON.stringify({id:this.myId,state:st}));}
+  pickGen(g){this.setState({myGen:g});if(this.client&&this.state.connected)this.client.publish(this.T.gen,JSON.stringify({id:this.myId,gen:g}));}
+  setDiag(i,v){this.setState(s=>{const d=s.diag.slice();d[i]=v;return {diag:d};});}
+  sendDiag(){const d=this.state.diag;if(d.some(x=>x==null))return;const total=d.reduce((a,b)=>a+(b||0),0);let pi=0;this.DIAG_PROFILES.forEach((p,idx)=>{if(total>=p.min&&total<=p.max)pi=idx;});this.setState({diagSent:true});if(this.client&&this.state.connected)this.client.publish(this.T.diag,JSON.stringify({id:this.myId,total,profileIdx:pi}));}
+  pickLab(k,v){this.setState(s=>({lab:{...s.lab,[k]:v},labDone:false}));}
+  genModel(){const l=this.state.lab;if(!(l.atencion&&l.feedback&&l.progreso))return;this.setState({labDone:true});if(this.client&&this.state.connected)this.client.publish(this.T.lab,JSON.stringify({id:this.myId,name:this.state.myName,atencion:l.atencion,feedback:l.feedback,progreso:l.progreso}));}
+  resetLab(){this.setState({lab:{atencion:null,feedback:null,progreso:null},labDone:false});}
+  printPlan(){try{window.print();}catch(e){}}
+  toggleRole(){const next=this.effRole()==='presenter'?'participant':'presenter';this.setState({roleOverride:next},()=>this.connect(next));}
+
+  renderVals(){
+    const s=this.state; const role=this.effRole();
+    const isPresenter=role==='presenter', isParticipant=role==='participant';
+    const liveCount=Object.keys(s.participants).length;
+    const tabSty=(active,accent)=>({bg:active?'rgba(92,225,255,.1)':'rgba(255,255,255,.03)',bdr:active?accent:'rgba(255,255,255,.1)',col:active?'#fff':'#8b93a7'});
+
+    // ---- presenter poll (from votesById) ----
+    const pollCounts={}; let pollTotal=0; Object.values(s.votesById).forEach(o=>{pollCounts[o]=(pollCounts[o]||0)+1;pollTotal++;});
+    const pollMax=Math.max(1,...Object.values(pollCounts),1);
+    const pollRows=this.POLL.map(o=>{const c=pollCounts[o.id]||0;return {label:o.label,color:o.color,count:c,pctLabel:pollTotal?Math.round(c/pollTotal*100)+'%':'0%',width:(c/pollMax*100)+'%',onClick:()=>this.addVote(o.id)};});
+
+    // ---- presenter semaforo (from semById) ----
+    const semC={verde:0,amarillo:0,rojo:0}; Object.values(s.semById).forEach(v=>{if(semC[v]!=null)semC[v]++;});
+    const semTotal=semC.verde+semC.amarillo+semC.rojo; const semP=(v)=>semTotal?Math.round(v/semTotal*100)+'%':'0%';
+
+    // ---- presenter diag dashboard ----
+    let dCount=0,dSum=0,dProf=[0,0,0]; Object.values(s.diagById).forEach(o=>{dCount++;dSum+=o.total||0;if(o.profileIdx!=null)dProf[o.profileIdx]++;});
+    const dAvg=dCount?Math.round(dSum/dCount):0;
+    const GC=2*Math.PI*66;
+    let dProfileObj=this.DIAG_PROFILES[1]; this.DIAG_PROFILES.forEach(p=>{if(dAvg>=p.min&&dAvg<=p.max)dProfileObj=p;}); if(dCount===0)dProfileObj={name:'Esperando respuestas…',color:'#5ce1ff'};
+    const dProfiles=this.DIAG_PROFILES.map((p,i)=>{const c=dProf[i];return {name:p.name,icon:p.icon,color:p.color,count:c,pct:dCount?Math.round(c/dCount*100)+'%':'0%',width:dCount?(c/Math.max(1,...dProf)*100)+'%':'0%',bdr:p.color+'40',bg:p.color+'10'};});
+
+    // ---- presenter gen dist ----
+    const genC={z:0,mil:0,adt:0}; Object.values(s.genById).forEach(g=>{if(genC[g]!=null)genC[g]++;}); const genTot=genC.z+genC.mil+genC.adt; const genMax=Math.max(1,genC.z,genC.mil,genC.adt);
+    const genDist=this.GEN_KEYS.map(k=>{const c=genC[k];const col=this.GEN_COLORS[k];return {name:this.GENERATIONS[k].name,color:col,bdr:col+'40',bg:col+'10',pct:genTot?Math.round(c/genTot*100)+'%':'0%',width:(c/genMax*100)+'%'};});
+
+    // ---- presenter lab feed ----
+    const labArr=Object.values(s.labById).sort((a,b)=>b.ts-a.ts).slice(0,6);
+    const labFeed=labArr.map(l=>({name:l.name||'Docente',atencion:l.atencion,feedback:l.feedback,progreso:l.progreso}));
+    const labCount=Object.keys(s.labById).length;
+
+    // ---- presenter explorers ----
+    const {chapter,faculty,minute,raceA,raceB,ladderField,slots,pool,dragId,gen}=s;
+    const opening=this.OPENINGS[faculty];
+    const facultyTabs=this.FAC_KEYS.map(k=>({label:this.OPENINGS[k].f,...tabSty(k===faculty,'#5ce1ff'),onClick:()=>this.setFaculty(k)}));
+    const L=this.LADDERS[ladderField];
+    const ladderTabs=Object.keys(this.LADDERS).map(k=>({short:({ingenieria:'Ingeniería',derecho:'Derecho',economia:'Economía'})[k],...tabSty(k===ladderField,'#a78bfa'),onClick:()=>this.setLadderField(k)}));
+    const poolItems=pool.map(id=>({id,label:L.steps[id],bg:id===dragId?'rgba(92,225,255,.18)':'rgba(255,255,255,.05)',bdr:id===dragId?'#5ce1ff':'rgba(255,255,255,.14)',onClick:()=>this.selectStep(id),onDragStart:(e)=>{this.setState({dragId:id});if(e&&e.dataTransfer){e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text','x');}}}));
+    const allFilled=slots.every(x=>x!=null); const allCorrect=allFilled&&slots.every((x,i)=>x===i);
+    const slotItems=slots.map((sid,i)=>({step:i+1,label:sid!=null?L.steps[sid]:'',mb:(i*26)+'px',bdr:sid==null?(dragId!=null?'rgba(92,225,255,.5)':'rgba(255,255,255,.12)'):(allFilled?(sid===i?'rgba(52,211,153,.6)':'rgba(251,113,133,.6)'):'rgba(255,255,255,.18)'),bg:sid==null?'rgba(255,255,255,.02)':(allFilled?(sid===i?'rgba(52,211,153,.1)':'rgba(251,113,133,.08)'):'rgba(92,225,255,.06)'),onClick:()=>sid!=null?this.returnToPool(i):this.dropOn(i),onDrop:(e)=>{if(e)e.preventDefault();this.dropOn(i);},onDragOver:(e)=>{if(e)e.preventDefault();}}));
+    const G=this.GENERATIONS[gen];
+    const genTabs=this.GEN_KEYS.map(k=>({label:this.GENERATIONS[k].name,...tabSty(k===gen,'#ffb84d'),onClick:()=>this.setGen(k)}));
+    const W=600,TOP=14,BOT=150; const yy=(att)=>(BOT-(att/100)*(BOT-TOP)); const xx=(m)=>(m/50)*W;
+    let tp='',dp=''; for(let m=0;m<=50;m++){tp+=(m===0?'M':'L')+xx(m).toFixed(1)+','+yy(this.attTrad(m)).toFixed(1)+' ';dp+=(m===0?'M':'L')+xx(m).toFixed(1)+','+yy(this.attDesign(m)).toFixed(1)+' ';}
+    const tradVal=Math.round(this.attTrad(minute)),designVal=Math.round(this.attDesign(minute));
+    const moduleRail=this.MODS.map(m=>{const active=chapter===m.ch;const done=chapter>m.ch;return {n:m.n,label:m.label,onClick:()=>this.goTo(m.ch),dotBg:active?'#5ce1ff':(done?'rgba(92,225,255,.2)':'transparent'),dotCol:active?'#07080d':(done?'#5ce1ff':'#5b6478'),dotBdr:active?'#5ce1ff':(done?'rgba(92,225,255,.4)':'rgba(255,255,255,.18)'),txtCol:active?'#fff':(done?'#aeb7c7':'#5b6478')};});
+    const navItems=this.CHAPTERS.map((c,i)=>({num:c.num,label:c.label,numColor:i===chapter?'#5ce1ff':'#5b6478',dotW:i===chapter?'22px':'6px',dotBg:i===chapter?'#5ce1ff':'rgba(255,255,255,.18)',onClick:()=>this.goTo(i)}));
+
+    // ---- participant ----
+    const pc=s.pChapter; const joined=s.joined;
+    const agg=s.pAgg||{poll:{counts:{},total:0},sem:{verde:0,amarillo:0,rojo:0},diag:{count:0,avg:0,profiles:[0,0,0]},gen:{z:0,mil:0,adt:0},lab:{count:0}};
+    // poll
+    const pollOptions=this.POLL.map(o=>{const sel=s.myVote===o.id;return {label:o.label,color:o.color,selBg:sel?o.color+'22':'rgba(255,255,255,.04)',selBdr:sel?o.color:'rgba(255,255,255,.14)',selMark:sel?'✓':'',onClick:()=>this.sendVote(o.id)};});
+    const ppc=agg.poll.counts||{}; const ppt=agg.poll.total||0; const ppmax=Math.max(1,...Object.values(ppc),1);
+    const pPollBars=this.POLL.map(o=>{const c=ppc[o.id]||0;return {color:o.color,width:(c/ppmax*100)+'%',pctLabel:ppt?Math.round(c/ppt*100)+'%':'0%'};});
+    // diag (participant)
+    const diag=s.diag; const SC=this.DIAG_COLORS;
+    const diagItems=this.DIAG_Q.map((q,i)=>{const ans=diag[i];return {n:i+1,q,rowBdr:ans!=null?'rgba(92,225,255,.25)':'rgba(255,255,255,.07)',rowBg:ans!=null?'rgba(92,225,255,.04)':'rgba(255,255,255,.02)',scale:this.DIAG_SCALE.map((sc,j)=>{const active=ans===sc.v;return {v:sc.v,bg:active?SC[j]:'rgba(255,255,255,.04)',col:active?'#07080d':'#8b93a7',bdr:active?SC[j]:'rgba(255,255,255,.12)',onClick:()=>this.setDiag(i,sc.v)};})};});
+    const diagAnswered=diag.filter(x=>x!=null).length; const diagDone=diagAnswered===10;
+    const diagTotal=diag.reduce((a,b)=>a+(b||0),0);
+    let pprof=this.DIAG_PROFILES[0]; this.DIAG_PROFILES.forEach(p=>{if(diagTotal>=p.min&&diagTotal<=p.max)pprof=p;});
+    const pFrac=s.diagSent?diagTotal/50:0;
+    // sem (participant)
+    const SEM=[{key:'verde',label:'Entiendo',color:'#34d399'},{key:'amarillo',label:'Tengo dudas',color:'#ffb84d'},{key:'rojo',label:'Estoy perdido',color:'#fb7185'}];
+    const semOptions=SEM.map(o=>{const sel=s.mySem===o.key;return {label:o.label,color:o.color,selBg:sel?o.color+'22':'rgba(255,255,255,.04)',selBdr:sel?o.color:'rgba(255,255,255,.14)',selMark:sel?'✓':'',onClick:()=>this.sendSem(o.key)};});
+    const asem=agg.sem; const asemT=asem.verde+asem.amarillo+asem.rojo; const asemMax=Math.max(1,asem.verde,asem.amarillo,asem.rojo);
+    const pSemBars=SEM.map(o=>{const c=asem[o.key]||0;return {label:o.label,color:o.color,width:(c/asemMax*100)+'%',pctLabel:asemT?Math.round(c/asemT*100)+'%':'0%'};});
+    // gen (participant)
+    const genOptions=this.GEN_KEYS.map(k=>{const sel=s.myGen===k;const col=this.GEN_COLORS[k];return {name:this.GENERATIONS[k].name,age:this.GENERATIONS[k].age,selBg:sel?col+'22':'rgba(255,255,255,.04)',selBdr:sel?col:'rgba(255,255,255,.14)',onClick:()=>this.pickGen(k)};});
+    const agen=agg.gen; const agenT=agen.z+agen.mil+agen.adt; const agenMax=Math.max(1,agen.z,agen.mil,agen.adt);
+    const pGenBars=this.GEN_KEYS.map(k=>{const c=agen[k]||0;return {name:this.GENERATIONS[k].name,color:this.GEN_COLORS[k],width:(c/agenMax*100)+'%',pctLabel:agenT?Math.round(c/agenT*100)+'%':'0%'};});
+    // lab (participant)
+    const labSections=Object.keys(this.LABDEF).map(key=>{const dd=this.LABDEF[key];return {title:dd.title,color:dd.color,options:dd.options.map(o=>{const active=s.lab[key]===o;return {label:o,bg:active?dd.color+'22':'rgba(255,255,255,.03)',bdr:active?dd.color:'rgba(255,255,255,.1)',col:active?'#fff':'#aeb7c7',mark:active?'●':'○',onClick:()=>this.pickLab(key,o)};})};});
+    const labReady=s.lab.atencion&&s.lab.feedback&&s.lab.progreso;
+    // follow-along
+    const fol=this.FOLLOW[pc]||{};
+    // participant chapter flags
+    const pf=(n)=>joined&&pc===n;
+    const planProfile=s.diagSent?pprof.name:'Complete el diagnóstico para conocerlo';
+
+    return {
+      // shared
+      isPresenter, isParticipant,
+      connDot:s.connected?'#34d399':'#ffb84d', connText:s.connected?'EN LÍNEA':'Conectando…',
+      toggleRole:()=>this.toggleRole(), toggleLabel:isPresenter?'Ver como participante ↗':'Ver como conferencista ↗',
+      // presenter chrome
+      chapNum:this.CHAPTERS[chapter].num, progressW:(chapter/(this.CHAPTERS.length-1)*100)+'%',
+      prevOpacity:chapter===0?'.25':'1', nextOpacity:chapter===this.CHAPTERS.length-1?'.25':'1',
+      prev:()=>this.prev(), next:()=>this.next(), toggleFs:()=>this.toggleFs(), moduleRail, navItems,
+      liveCount, qrShort:this.qrUrl(),
+      pollReveal:s.pollReveal, revealPoll:()=>this.setState({pollReveal:true}), closeReveal:()=>{this.setState({pollReveal:false});this.next();},
+      // presenter poll
+      pollRows, pollTotal, resetPoll:()=>this.resetPoll(),
+      // presenter diag dash
+      dAvg, dCount, dGaugeColor:dCount?dProfileObj.color:'#5ce1ff', dAvgProfile:dProfileObj.name, gaugeDash:GC.toFixed(1), dGaugeOffset:(GC*(1-(dCount?dAvg/50:0))).toFixed(1), dProfiles,
+      // presenter arquitecto
+      professions:this.PROFESSIONS, wanted:this.WANTED, unwanted:this.UNWANTED,
+      // presenter atencion
+      facultyTabs, openingBad:opening.bad, openingGood:opening.good,
+      minute, tradPath:tp, designPath:dp, markerX:xx(minute).toFixed(1), tradVal, designVal, tradY:yy(tradVal).toFixed(1), designY:yy(designVal).toFixed(1), onMinute:(e)=>{const v=e&&e.target?+e.target.value:25;this.setState({minute:Math.max(0,Math.min(50,v))});},
+      // presenter feedback
+      raceAw:raceA+'%', raceBw:raceB+'%', raceAn:Math.round(raceA), raceBn:Math.round(raceB), runRace:()=>this.runRace(),
+      semaforo:semC, semVerdeW:semP(semC.verde), semAmW:semP(semC.amarillo), semRojoW:semP(semC.rojo), resetSem:()=>this.resetSem(),
+      // presenter micro
+      ladderTabs, ladderGoal:L.goal, poolItems, slotItems, resetLadder:()=>this.resetLadder(),
+      ladderMsg:!allFilled?'Arrastre o toque los pasos para ordenarlos de la base a la cima.':(allCorrect?'¡Secuencia correcta! Así se construye la competencia.':'Aún no es el orden óptimo. Revise la dependencia entre pasos.'),
+      ladderMsgColor:!allFilled?'#8b93a7':(allCorrect?'#34d399':'#fb7185'),
+      // presenter gen
+      genDist, genTabs, genName:G.name, genAge:G.age, genFormats:G.formats, genReinforce:G.reinforce, genStrategy:G.strategy,
+      // presenter lab
+      labCount, labFeed, labEmpty:labCount===0,
+      // participant
+      pShowJoin:!joined,
+      pJoinedHeader: joined && pc!=null,
+      pIsWait: joined && pc==null,
+      pChapterTag: pc!=null?('BLOQUE '+this.CHAPTERS[pc].num+' · '+this.CHAPTERS[pc].label):'',
+      myName:s.myName, nameDraft:s.nameDraft, onName:(e)=>this.setState({nameDraft:e&&e.target?e.target.value:''}), join:()=>this.join(),
+      pIsPoll:pf(0), pollOptions, pVoted:s.myVote!=null, pPollBars, pPollTotal:ppt,
+      pIsDiag:pf(1), diagItems, diagAnswered, diagAnsweredW:(diagAnswered/10*100)+'%', diagNotSent:!s.diagSent, diagSent:s.diagSent, sendDiag:()=>this.sendDiag(), diagSendBg:diagDone?'linear-gradient(90deg,#5ce1ff,#a78bfa)':'rgba(255,255,255,.1)', diagSendOpacity:diagDone?'1':'.5',
+      diagTotal, profName:pprof.name, profIcon:pprof.icon, profDesc:pprof.desc, gaugeColor:pprof.color, profBorder:pprof.color+'59', profBg:pprof.color+'14', gaugeOffset:(GC*(1-pFrac)).toFixed(1),
+      pIsFollow:(pf(2)||pf(3)||pf(5)), followTag:fol.tag, followColor:fol.color||'#5ce1ff', followIcon:fol.icon, followTitle:fol.title, followIdea:fol.idea,
+      pIsSem:pf(4), semOptions, semSet:s.mySem!=null, pSemBars, pSemTotal:asemT,
+      pIsGen:pf(6), genOptions, genSet:s.myGen!=null, myGenName:s.myGen?this.GENERATIONS[s.myGen].name:'', myGenStrategy:s.myGen?this.GENERATIONS[s.myGen].strategy:'', pGenBars,
+      pIsLab:pf(7), labSections, labReadyOpacity:labReady?'1':'.5', labBtnBg:labReady?'linear-gradient(90deg,#5ce1ff,#a78bfa)':'rgba(255,255,255,.1)', genModelFn:()=>this.genModel(), labDone:s.labDone, labAtencion:s.lab.atencion, labFeedback:s.lab.feedback, labProgreso:s.lab.progreso, resetLab:()=>this.resetLab(), printPlan:()=>this.printPlan(),
+      pIsClose:pf(8), hasPlan:s.labDone,
+      // print plan
+      planName:s.myName||'Docente', planProfile, planAtencion:s.lab.atencion||'—', planFeedback:s.lab.feedback||'—', planProgreso:s.lab.progreso||'—',
+    };
+  }
+}
+</script>
+</body>
+</html>
