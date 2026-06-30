@@ -71,7 +71,7 @@
       <div style="position:absolute;top:18px;right:24px;display:flex;align-items:center;gap:10px;z-index:30">
         <div style="display:flex;align-items:center;gap:7px;background:rgba(18,21,31,.6);border:1px solid rgba(52,211,153,.25);border-radius:999px;padding:5px 12px"><span style="width:7px;height:7px;border-radius:50%;background:#34d399;box-shadow:0 0 8px #34d399;animation:blink 1.4s infinite"></span><span style="font-family:'JetBrains Mono';font-size:12px;color:#fff">{{ liveCount }}</span><span style="font-size:11px;color:#8b93a7">en vivo</span></div>
         <div style="display:flex;align-items:center;gap:7px;background:rgba(18,21,31,.6);border:1px solid {{ routeColor }}44;border-radius:999px;padding:5px 12px"><span style="font-size:14px;color:{{ routeColor }}">{{ routeIcon }}</span><span style="font-family:'JetBrains Mono';font-size:11px;color:{{ routeColor }}">{{ routeLabel }}</span></div>
-        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.18em;color:#5ce1ff">{{ chapNum }} <span style="color:#465065">/ 09</span></span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.18em;color:#5ce1ff">{{ chapNum }} <span style="color:#465065">/ 12</span></span>
       </div>
 
       <!-- module rail -->
@@ -197,7 +197,30 @@
             </div>
           </section>
 
-          <!-- 02 EL ARQUITECTO -->
+          <!-- 03 RETO EN EQUIPOS -->
+          <section class="scrolly" style="position:absolute;inset:0;overflow-y:auto;display:none;flex-direction:column;justify-content:flex-start;padding:118px 5vw 90px">
+            <div class="rise" style="max-width:1240px;width:100%;margin:auto;display:flex;flex-direction:column;gap:22px">
+              <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px">
+                <div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.28em;color:#fb7185;margin-bottom:10px">BLOQUE 03 · TRABAJO EN EQUIPOS</div><h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(28px,4vw,50px);line-height:1.02;letter-spacing:-.02em;margin:0;color:#fff">Reto en <span style="color:#fb7185">Equipos</span></h2><p style="margin:8px 0 0;color:#9aa3b5;font-size:16px">Los docentes son asignados automáticamente a equipos A/B/C/D y proponen una solución al escenario.</p></div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px"><div style="font-family:'JetBrains Mono';font-size:32px;color:{{ timerColor }}">{{ timerDisplay }}</div><div style="display:flex;gap:8px"><button onClick="{{ startTimer5 }}" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:#aeb7c7;border-radius:9px;padding:8px 14px;font-size:13px;cursor:pointer">5 min</button><button onClick="{{ startTimer10 }}" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:#aeb7c7;border-radius:9px;padding:8px 14px;font-size:13px;cursor:pointer">10 min</button><button onClick="{{ stopTimerFn }}" style="background:rgba(251,113,133,.1);border:1px solid rgba(251,113,133,.3);color:#fb7185;border-radius:9px;padding:8px 14px;font-size:13px;cursor:pointer">✕ Detener</button></div></div>
+              </div>
+              <div style="border:1px solid rgba(251,113,133,.25);background:rgba(251,113,133,.05);border-radius:16px;padding:22px 24px;display:flex;flex-direction:column;gap:14px">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><div style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.16em;color:#fb7185">ESCENARIO ACTIVO</div><div style="display:flex;gap:8px"><sc-for list="{{ scenarioTabs }}" as="st" hint-placeholder-count="4"><button onClick="{{ st.onClick }}" style="font-size:12px;border-radius:999px;padding:6px 13px;cursor:pointer;transition:all .2s;background:{{ st.bg }};border:1px solid {{ st.bdr }};color:{{ st.col }}">{{ st.n }}</button></sc-for></div></div>
+                <p style="margin:0;font-size:17px;color:#fff;line-height:1.55;font-weight:500">{{ activeScenario }}</p>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+                <sc-for list="{{ teamBoxes }}" as="tb" hint-placeholder-count="4">
+                  <div style="border:1px solid {{ tb.bdr }};background:{{ tb.bg }};border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px">
+                    <div style="display:flex;align-items:center;gap:9px"><span style="width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono';font-size:14px;font-weight:700;background:{{ tb.color }}22;color:{{ tb.color }};border:1.5px solid {{ tb.color }}">{{ tb.team }}</span><span style="font-family:'Space Grotesk';font-weight:600;font-size:16px;color:#fff">Equipo {{ tb.team }}</span><span style="margin-left:auto;font-family:'JetBrains Mono';font-size:12px;color:{{ tb.color }}">{{ tb.count }}</span></div>
+                    <div style="display:flex;flex-direction:column;gap:8px;min-height:60px"><sc-for list="{{ tb.subs }}" as="tsub" hint-placeholder-count="0"><div style="background:rgba(255,255,255,.04);border-radius:9px;padding:10px 12px"><span style="font-family:'JetBrains Mono';font-size:10px;color:{{ tb.color }};display:block;margin-bottom:4px">{{ tsub.name }}</span><span style="font-size:13px;color:#dfe5ef;line-height:1.4">{{ tsub.text }}</span></div></sc-for></div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px 18px;text-align:center"><span style="font-family:'JetBrains Mono';font-size:12px;color:#8b93a7"><span style="color:#fb7185;font-size:16px">{{ teamSubTotal }}</span> propuestas recibidas · los participantes ven su equipo y el escenario en el teléfono</span></div>
+            </div>
+          </section>
+
+          <!-- 04 EL ARQUITECTO -->
           <section class="scrolly" style="position:absolute;inset:0;overflow-y:auto;display:none;flex-direction:column;justify-content:flex-start;padding:118px 6vw 90px">
             <div class="rise" style="max-width:1240px;width:100%;margin:auto;display:flex;flex-direction:column;gap:26px">
               <div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.28em;color:#5ce1ff;margin-bottom:10px">BLOQUE 02</div><h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(30px,4.4vw,56px);line-height:1.02;letter-spacing:-.02em;margin:0;color:#fff">El docente como <span style="color:#5ce1ff">arquitecto</span> del aprendizaje</h2></div>
@@ -224,7 +247,7 @@
             </div>
           </section>
 
-          <!-- 03 ATENCIÓN -->
+          <!-- 05 ATENCIÓN -->
           <section class="scrolly" style="position:absolute;inset:0;overflow-y:auto;display:none;flex-direction:column;justify-content:flex-start;padding:118px 5vw 90px">
             <div class="rise" style="max-width:1240px;width:100%;margin:auto;display:flex;flex-direction:column;gap:22px">
               <div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.28em;color:#5ce1ff;margin-bottom:10px">BLOQUE 03</div><h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(28px,4vw,50px);line-height:1.02;letter-spacing:-.02em;margin:0;color:#fff">Diseño de estímulos y captura de la <span style="color:#5ce1ff">atención</span></h2></div>
@@ -251,7 +274,7 @@
             </div>
           </section>
 
-          <!-- 04 FEEDBACK + semáforo live -->
+          <!-- 06 FEEDBACK + semáforo live -->
           <section class="scrolly" style="position:absolute;inset:0;overflow-y:auto;display:none;flex-direction:column;justify-content:flex-start;padding:118px 5vw 90px">
             <div class="rise" style="max-width:1240px;width:100%;margin:auto;display:flex;flex-direction:column;gap:22px">
               <div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.28em;color:#34d399;margin-bottom:10px">BLOQUE 04</div><h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(28px,4vw,50px);line-height:1.02;letter-spacing:-.02em;margin:0;color:#fff">El poder del <span style="color:#34d399">feedback inmediato</span></h2></div>
@@ -271,10 +294,31 @@
             </div>
           </section>
 
-          <!-- 05 MICRO-PROGRESOS -->
+          <!-- 07 PIZARRA DE IDEAS -->
+          <section class="scrolly" style="position:absolute;inset:0;overflow-y:auto;display:none;flex-direction:column;justify-content:flex-start;padding:118px 5vw 90px">
+            <div class="rise" style="max-width:1240px;width:100%;margin:auto;display:flex;flex-direction:column;gap:22px">
+              <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px">
+                <div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.28em;color:#a78bfa;margin-bottom:10px">BLOQUE 07 · COLABORACIÓN EN VIVO</div><h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(28px,4vw,50px);line-height:1.02;letter-spacing:-.02em;margin:0;color:#fff">Pizarra de <span style="color:#a78bfa">Ideas</span></h2><p style="margin:8px 0 0;color:#9aa3b5;font-size:16px">Los docentes responden desde el teléfono. Las ideas aparecen aquí en tiempo real.</p></div>
+                <button onClick="{{ nextPizarraQFn }}" style="background:linear-gradient(90deg,#a78bfa,#5ce1ff);border:none;color:#07080d;font-weight:600;border-radius:10px;padding:12px 22px;font-size:14px;cursor:pointer;white-space:nowrap">Siguiente pregunta →</button>
+              </div>
+              <div style="border:1px solid rgba(167,139,250,.35);background:rgba(167,139,250,.06);border-radius:16px;padding:22px 24px">
+                <div style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.16em;color:#a78bfa;margin-bottom:10px">PREGUNTA ACTIVA · {{ pizarraQNum }}</div>
+                <p style="margin:0;font-size:20px;color:#fff;font-weight:600;line-height:1.4">{{ activePizarraQ }}</p>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><span style="font-family:'JetBrains Mono';font-size:12px;color:#8b93a7"><span style="color:#a78bfa;font-size:16px">{{ ideasTotal }}</span> ideas recibidas</span><button onClick="{{ clearIdeasFn }}" style="background:transparent;border:1px solid rgba(255,255,255,.12);color:#8b93a7;border-radius:9px;padding:8px 15px;font-size:13px;cursor:pointer">Limpiar pizarra</button></div>
+              <sc-if value="{{ ideasEmpty }}" hint-placeholder-val="{{ true }}"><div style="border:1px dashed rgba(255,255,255,.14);border-radius:12px;padding:24px;text-align:center;color:#8b93a7;font-size:14px">Aún no hay ideas. Cuando los docentes respondan desde el teléfono, aparecerán aquí.</div></sc-if>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
+                <sc-for list="{{ ideaCards }}" as="ic" hint-placeholder-count="0">
+                  <div style="background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);border-radius:13px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;animation:fadeUp .4s ease both"><span style="font-family:'JetBrains Mono';font-size:10px;color:#a78bfa">{{ ic.name }}</span><span style="font-size:14px;color:#e9edf6;line-height:1.45">{{ ic.text }}</span></div>
+                </sc-for>
+              </div>
+            </div>
+          </section>
+
+          <!-- 08 MICRO-PROGRESOS -->
           <section class="scrolly" style="position:absolute;inset:0;overflow-y:auto;display:none;flex-direction:column;justify-content:flex-start;padding:118px 5vw 90px">
             <div class="rise" style="max-width:1240px;width:100%;margin:auto;display:flex;flex-direction:column;gap:20px">
-              <div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.28em;color:#a78bfa;margin-bottom:10px">BLOQUE 05</div><h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(28px,4vw,50px);line-height:1.02;letter-spacing:-.02em;margin:0;color:#fff">Micro-progresos y <span style="color:#a78bfa">construcción</span> del aprendizaje</h2><p style="margin:10px 0 0;font-family:'Space Grotesk';font-weight:500;font-size:clamp(17px,2vw,22px);color:#cbd3e1">Nadie aprende una competencia compleja de una sola vez.</p></div>
+              <div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.28em;color:#a78bfa;margin-bottom:10px">BLOQUE 08 · ACTIVIDAD EN VIVO</div><h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(28px,4vw,50px);line-height:1.02;letter-spacing:-.02em;margin:0;color:#fff">Micro-progresos y <span style="color:#a78bfa">construcción</span> del aprendizaje</h2><p style="margin:10px 0 0;font-family:'Space Grotesk';font-weight:500;font-size:clamp(17px,2vw,22px);color:#cbd3e1">Nadie aprende una competencia compleja de una sola vez.</p></div>
               <div style="border:1px solid rgba(255,255,255,.08);background:rgba(18,21,31,.5);border-radius:16px;padding:22px 24px;display:flex;flex-direction:column;gap:18px">
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px"><div style="display:flex;align-items:baseline;gap:10px"><span style="font-family:'Space Grotesk';font-weight:600;font-size:18px;color:#fff">Construya los micro-pasos</span><span style="font-size:13.5px;color:#a78bfa">Meta: {{ ladderGoal }}</span></div><div style="display:flex;gap:8px"><sc-for list="{{ ladderTabs }}" as="lt" hint-placeholder-count="3"><button onClick="{{ lt.onClick }}" style="font-size:13px;font-weight:500;border-radius:999px;padding:7px 15px;cursor:pointer;transition:all .2s;background:{{ lt.bg }};border:1px solid {{ lt.bdr }};color:{{ lt.col }}">{{ lt.short }}</button></sc-for></div></div>
                 <div style="display:flex;flex-wrap:wrap;gap:10px;min-height:46px;align-items:center"><span style="font-family:'JetBrains Mono';font-size:11px;color:#5b6478;letter-spacing:.1em;margin-right:4px">PIEZAS:</span><sc-for list="{{ poolItems }}" as="pi" hint-placeholder-count="5"><button draggable="true" onClick="{{ pi.onClick }}" onDragStart="{{ pi.onDragStart }}" style="font-family:'Instrument Sans';font-size:14px;font-weight:500;color:#e9edf6;border-radius:10px;padding:10px 16px;cursor:grab;transition:all .15s;background:{{ pi.bg }};border:1px solid {{ pi.bdr }}">⠿ {{ pi.label }}</button></sc-for></div>
@@ -284,7 +328,7 @@
             </div>
           </section>
 
-          <!-- 06 GENERACIONES + live distribution -->
+          <!-- 09 GENERACIONES + live distribution -->
           <section class="scrolly" style="position:absolute;inset:0;overflow-y:auto;display:none;flex-direction:column;justify-content:flex-start;padding:118px 5vw 90px">
             <div class="rise" style="max-width:1180px;width:100%;margin:auto;display:flex;flex-direction:column;gap:20px">
               <div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.28em;color:#ffb84d;margin-bottom:10px">BLOQUE 06</div><h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(28px,4vw,50px);line-height:1.02;letter-spacing:-.02em;margin:0;color:#fff">Enseñar a <span style="color:#ffb84d">múltiples generaciones</span></h2></div>
@@ -300,7 +344,7 @@
             </div>
           </section>
 
-          <!-- 07 LABORATORIO + live count -->
+          <!-- 10 LABORATORIO + live count -->
           <section class="scrolly" style="position:absolute;inset:0;overflow-y:auto;display:none;flex-direction:column;justify-content:flex-start;padding:118px 5vw 90px">
             <div class="rise" style="max-width:1240px;width:100%;margin:auto;display:flex;flex-direction:column;gap:18px">
               <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px"><div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.28em;color:#5ce1ff;margin-bottom:10px">BLOQUE 07 · ACTIVIDAD FINAL</div><h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(28px,4vw,50px);line-height:1.02;letter-spacing:-.02em;margin:0;color:#fff">Laboratorio <span style="color:#5ce1ff">Docente</span></h2><p style="margin:8px 0 0;color:#9aa3b5;font-size:16px">Cada docente diseña su próxima clase en el teléfono y descarga su plan.</p></div><div style="text-align:center;background:rgba(92,225,255,.08);border:1px solid rgba(92,225,255,.2);border-radius:14px;padding:14px 24px"><div style="font-family:'Space Grotesk';font-weight:700;font-size:40px;color:#5ce1ff;line-height:1">{{ labCount }}</div><div style="font-size:12px;color:#8b93a7">clases diseñadas</div></div></div>
@@ -312,7 +356,24 @@
             </div>
           </section>
 
-          <!-- 08 CIERRE -->
+          <!-- 11 MURO DE COMPROMISOS -->
+          <section class="scrolly" style="position:absolute;inset:0;overflow-y:auto;display:none;flex-direction:column;justify-content:flex-start;padding:118px 5vw 90px">
+            <div class="rise" style="max-width:1240px;width:100%;margin:auto;display:flex;flex-direction:column;gap:22px">
+              <div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.28em;color:#34d399;margin-bottom:10px">BLOQUE 11 · CIERRE ACTIVO</div><h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(28px,4vw,50px);line-height:1.02;letter-spacing:-.02em;margin:0;color:#fff">Muro de <span style="color:#34d399">Compromisos</span></h2><p style="margin:8px 0 0;color:#9aa3b5;font-size:16px">Cada docente escribe una acción concreta que implementará esta semana.</p></div>
+              <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+                <div style="display:flex;align-items:center;gap:9px;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.25);border-radius:999px;padding:8px 18px"><span style="width:8px;height:8px;border-radius:50%;background:#34d399;box-shadow:0 0 8px #34d399;animation:blink 1.4s infinite"></span><span style="font-family:'JetBrains Mono';font-size:13px;color:#34d399">{{ commitCount }} compromisos</span></div>
+                <span style="font-size:14px;color:#8b93a7">Los docentes los escriben desde su teléfono</span>
+              </div>
+              <sc-if value="{{ commitEmpty }}" hint-placeholder-val="{{ true }}"><div style="border:1px dashed rgba(255,255,255,.14);border-radius:12px;padding:32px;text-align:center;color:#8b93a7;font-size:14px">Esperando compromisos… Los docentes los escriben desde su teléfono.</div></sc-if>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">
+                <sc-for list="{{ commitCards }}" as="cc" hint-placeholder-count="0">
+                  <div style="background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.22);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px;animation:fadeUp .5s ease both"><div style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:#34d399;flex:none"></span><span style="font-family:'JetBrains Mono';font-size:10px;color:#34d399">{{ cc.name }}</span></div><p style="margin:0;font-size:15px;color:#fff;line-height:1.45;font-weight:500">{{ cc.text }}</p></div>
+                </sc-for>
+              </div>
+            </div>
+          </section>
+
+          <!-- 12 CIERRE -->
           <section class="scrolly" style="position:absolute;inset:0;overflow-y:auto;display:none;flex-direction:column;justify-content:flex-start;padding:118px 5vw 90px">
             <div class="rise" style="max-width:1180px;width:100%;margin:auto;display:flex;flex-direction:column;align-items:center;gap:24px;text-align:center">
               <div style="position:relative;width:110px;height:110px;display:flex;align-items:center;justify-content:center"><div style="position:absolute;inset:0;border-radius:50%;border:1px solid rgba(92,225,255,.45);animation:pulseRing 2.4s ease-out infinite"></div><div style="position:absolute;inset:0;border-radius:50%;border:1px solid rgba(167,139,250,.45);animation:pulseRing 2.4s ease-out infinite 1.2s"></div><div style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#5ce1ff,#a78bfa);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:26px;color:#07080d;box-shadow:0 0 32px rgba(92,225,255,.6)">◈</div></div>
@@ -339,7 +400,7 @@
       <button onClick="{{ next }}" style="position:absolute;right:18px;top:50%;transform:translateY(-50%);z-index:35;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.14);background:rgba(18,21,31,.6);color:#cfd6e2;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);opacity:{{ nextOpacity }}" style-hover="border-color:#5ce1ff;color:#5ce1ff">›</button>
 
       <div style="position:absolute;bottom:18px;left:50%;transform:translateX(-50%);z-index:35;display:flex;align-items:center;gap:7px;background:rgba(18,21,31,.6);border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:9px 14px;backdrop-filter:blur(8px)">
-        <sc-for list="{{ navItems }}" as="nv" hint-placeholder-count="10"><button onClick="{{ nv.onClick }}" title="{{ nv.label }}" style="display:flex;align-items:center;gap:7px;background:transparent;border:none;cursor:pointer;padding:5px 7px;border-radius:8px"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;transition:color .2s;color:{{ nv.numColor }}">{{ nv.num }}</span><span style="height:6px;border-radius:3px;transition:all .35s;width:{{ nv.dotW }};background:{{ nv.dotBg }}"></span></button></sc-for>
+        <sc-for list="{{ navItems }}" as="nv" hint-placeholder-count="13"><button onClick="{{ nv.onClick }}" title="{{ nv.label }}" style="display:flex;align-items:center;gap:7px;background:transparent;border:none;cursor:pointer;padding:5px 7px;border-radius:8px"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;transition:color .2s;color:{{ nv.numColor }}">{{ nv.num }}</span><span style="height:6px;border-radius:3px;transition:all .35s;width:{{ nv.dotW }};background:{{ nv.dotBg }}"></span></button></sc-for>
       </div>
       <button onClick="{{ toggleFs }}" title="Pantalla completa (F)" style="position:absolute;bottom:20px;right:20px;z-index:35;width:38px;height:38px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:rgba(18,21,31,.6);color:#8b93a7;cursor:pointer;backdrop-filter:blur(6px);font-size:15px;display:flex;align-items:center;justify-content:center" style-hover="color:#5ce1ff;border-color:#5ce1ff">⤢</button>
     </div>
@@ -433,7 +494,28 @@
           </div>
         </sc-if>
 
-        <!-- ch3/4/6 FOLLOW-ALONG -->
+        <!-- ch3 EQUIPOS -->
+        <sc-if value="{{ pIsEquipos }}" hint-placeholder-val="{{ false }}">
+          <div class="rise" style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono';font-size:20px;font-weight:700;background:{{ myTeamColor }}22;color:{{ myTeamColor }};border:2px solid {{ myTeamColor }}">{{ myTeam }}</div>
+              <div><div style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.18em;color:{{ myTeamColor }}">EQUIPO {{ myTeam }}</div><h1 style="font-family:'Space Grotesk';font-weight:700;font-size:22px;line-height:1.2;margin:4px 0 0;color:#fff">Reto en equipo</h1></div>
+            </div>
+            <div style="border:1px solid {{ myTeamColor }}40;background:{{ myTeamColor }}08;border-radius:14px;padding:18px"><div style="font-family:'JetBrains Mono';font-size:11px;color:{{ myTeamColor }};margin-bottom:8px;letter-spacing:.14em">ESCENARIO</div><p style="margin:0;font-size:15px;color:#fff;line-height:1.5">{{ pActiveScenario }}</p></div>
+            <sc-if value="{{ noTeamSub }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <label style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.14em;color:#7c8499">SU PROPUESTA DE SOLUCIÓN</label>
+                <textarea value="{{ teamSubDraft }}" onInput="{{ onTeamSubDraft }}" placeholder="Describa en 2-3 líneas la estrategia de su equipo…" rows="4" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:14px 16px;color:#fff;font-size:15px;font-family:'Instrument Sans',sans-serif;resize:none;outline:none;width:100%"></textarea>
+                <button onClick="{{ sendTeamSubFn }}" style="border:none;color:#07080d;font-weight:700;border-radius:12px;padding:15px;font-size:16px;cursor:pointer;background:{{ teamSubBtnBg }};opacity:{{ teamSubBtnOpacity }}">Enviar propuesta al equipo</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{ hasTeamSub }}" hint-placeholder-val="{{ false }}">
+              <div style="border:1px solid {{ myTeamColor }}40;background:{{ myTeamColor }}0c;border-radius:14px;padding:18px;animation:fadeUp .5s ease both;display:flex;flex-direction:column;gap:8px"><div style="font-family:'JetBrains Mono';font-size:11px;color:#34d399">✓ Propuesta enviada</div><p style="margin:0;font-size:15px;color:#fff;line-height:1.45">{{ myTeamSubText }}</p></div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <!-- ch4/5/8 FOLLOW-ALONG -->
         <sc-if value="{{ pIsFollow }}" hint-placeholder-val="{{ false }}">
           <div class="rise" style="margin:auto 0;display:flex;flex-direction:column;gap:16px;text-align:center;align-items:center">
             <div style="font-size:40px;color:{{ followColor }}">{{ followIcon }}</div>
@@ -453,7 +535,24 @@
           </div>
         </sc-if>
 
-        <!-- ch6 GENERACIONES -->
+        <!-- ch7 PIZARRA -->
+        <sc-if value="{{ pIsPizarra }}" hint-placeholder-val="{{ false }}">
+          <div class="rise" style="display:flex;flex-direction:column;gap:16px">
+            <div><div style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.18em;color:#a78bfa">PIZARRA DE IDEAS</div><h1 style="font-family:'Space Grotesk';font-weight:700;font-size:22px;line-height:1.2;margin:6px 0 0;color:#fff">Comparta su idea</h1></div>
+            <div style="border:1px solid rgba(167,139,250,.35);background:rgba(167,139,250,.06);border-radius:14px;padding:18px"><div style="font-family:'JetBrains Mono';font-size:10px;color:#a78bfa;margin-bottom:8px;letter-spacing:.12em">PREGUNTA ACTIVA</div><p style="margin:0;font-size:16px;color:#fff;font-weight:600;line-height:1.4">{{ pActivePizarraQ }}</p></div>
+            <sc-if value="{{ noMyIdea }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <textarea value="{{ ideaDraft }}" onInput="{{ onIdeaDraft }}" placeholder="Escriba su idea aquí…" rows="3" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:14px 16px;color:#fff;font-size:15px;font-family:'Instrument Sans',sans-serif;resize:none;outline:none;width:100%"></textarea>
+                <button onClick="{{ sendIdeaFn }}" style="background:linear-gradient(90deg,#a78bfa,#5ce1ff);border:none;color:#07080d;font-weight:700;border-radius:12px;padding:15px;font-size:16px;cursor:pointer;opacity:{{ ideaBtnOpacity }}">Publicar en la pizarra</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{ hasMyIdea }}" hint-placeholder-val="{{ false }}">
+              <div style="border:1px solid rgba(167,139,250,.4);background:rgba(167,139,250,.1);border-radius:14px;padding:18px;animation:fadeUp .5s ease both;display:flex;flex-direction:column;gap:8px"><div style="font-family:'JetBrains Mono';font-size:11px;color:#34d399">✓ Idea publicada</div><p style="margin:0;font-size:15px;color:#fff;line-height:1.45">{{ myIdeaText }}</p><button onClick="{{ resetIdeaFn }}" style="background:transparent;border:1px solid rgba(255,255,255,.12);color:#8b93a7;border-radius:9px;padding:8px 15px;font-size:13px;cursor:pointer;margin-top:4px">Publicar otra idea</button></div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <!-- ch9 GENERACIONES -->
         <sc-if value="{{ pIsGen }}" hint-placeholder-val="{{ false }}">
           <div class="rise" style="display:flex;flex-direction:column;gap:16px">
             <div><div style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.18em;color:#ffb84d">GENERACIONES</div><h1 style="font-family:'Space Grotesk';font-weight:700;font-size:23px;line-height:1.2;margin:6px 0 0;color:#fff">¿Con qué generación se identifica más su grupo?</h1></div>
@@ -481,7 +580,23 @@
           </div>
         </sc-if>
 
-        <!-- ch8 CIERRE -->
+        <!-- ch11 COMPROMISO -->
+        <sc-if value="{{ pIsCommit }}" hint-placeholder-val="{{ false }}">
+          <div class="rise" style="display:flex;flex-direction:column;gap:16px">
+            <div><div style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.18em;color:#34d399">MURO DE COMPROMISOS</div><h1 style="font-family:'Space Grotesk';font-weight:700;font-size:22px;line-height:1.2;margin:6px 0 0;color:#fff">Su compromiso docente</h1><p style="margin:6px 0 0;color:#8b93a7;font-size:14px">¿Cuál es la primera acción que implementará esta semana?</p></div>
+            <sc-if value="{{ noMyCommit }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <textarea value="{{ commitDraft }}" onInput="{{ onCommitDraft }}" placeholder="Ej. Voy a usar la regla 10-2 en mi clase del martes…" rows="3" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:14px 16px;color:#fff;font-size:15px;font-family:'Instrument Sans',sans-serif;resize:none;outline:none;width:100%"></textarea>
+                <button onClick="{{ sendCommitFn }}" style="border:none;color:#07080d;font-weight:700;border-radius:12px;padding:15px;font-size:16px;cursor:pointer;background:{{ commitBtnBg }};opacity:{{ commitBtnOpacity }}">Publicar mi compromiso</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{ hasMyCommit }}" hint-placeholder-val="{{ false }}">
+              <div style="border:1px solid rgba(52,211,153,.4);background:rgba(52,211,153,.08);border-radius:14px;padding:20px;animation:fadeUp .5s ease both;display:flex;flex-direction:column;gap:10px"><div style="font-family:'JetBrains Mono';font-size:11px;color:#34d399">✓ Compromiso publicado en el muro</div><p style="margin:0;font-size:16px;color:#fff;line-height:1.45;font-weight:500">{{ myCommitText }}</p></div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <!-- ch12 CIERRE -->
         <sc-if value="{{ pIsClose }}" hint-placeholder-val="{{ false }}">
           <div class="rise" style="margin:auto 0;display:flex;flex-direction:column;gap:18px;text-align:center;align-items:center">
             <div style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#5ce1ff,#a78bfa);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:24px;color:#07080d">◈</div>
@@ -506,7 +621,8 @@
   <div style="border:1px solid #d8dbe0;border-radius:10px;overflow:hidden">
     <div style="display:flex;border-bottom:1px solid #d8dbe0"><div style="width:170px;background:#f3f5f8;padding:16px;font-weight:600;border-right:1px solid #d8dbe0">Apertura · atención</div><div style="padding:16px;font-size:17px">{{ planAtencion }}</div></div>
     <div style="display:flex;border-bottom:1px solid #d8dbe0"><div style="width:170px;background:#f3f5f8;padding:16px;font-weight:600;border-right:1px solid #d8dbe0">Desarrollo · feedback</div><div style="padding:16px;font-size:17px">{{ planFeedback }}</div></div>
-    <div style="display:flex"><div style="width:170px;background:#f3f5f8;padding:16px;font-weight:600;border-right:1px solid #d8dbe0">Cierre · progreso</div><div style="padding:16px;font-size:17px">{{ planProgreso }}</div></div>
+    <div style="display:flex;border-bottom:1px solid #d8dbe0"><div style="width:170px;background:#f3f5f8;padding:16px;font-weight:600;border-right:1px solid #d8dbe0">Cierre · progreso</div><div style="padding:16px;font-size:17px">{{ planProgreso }}</div></div>
+    <div style="display:flex"><div style="width:170px;background:#f3f5f8;padding:16px;font-weight:600;border-right:1px solid #d8dbe0">Mi compromiso</div><div style="padding:16px;font-size:17px">{{ planCommit }}</div></div>
   </div>
   <p style="margin:28px 0 0;font-size:15px;line-height:1.6;color:#3a3f4a">Aplique la <strong>regla 10–2</strong> (cada 10 min de exposición, 2 min de actividad), dé <strong>feedback inmediato</strong> y divida la competencia en <strong>micro-pasos</strong>. Una clase que captura, retroalimenta y avanza.</p>
   <div style="margin-top:34px;font-family:'JetBrains Mono';font-size:11px;color:#9aa0ab">El éxito académico no ocurre por casualidad. Se diseña.</div>
@@ -516,7 +632,7 @@
 class Component extends DCLogic {
   constructor(props){
     super(props);
-    this.CHAPTERS=[{num:'00',label:'Apertura'},{num:'01',label:'Diagnóstico'},{num:'02',label:'Ruta'},{num:'03',label:'El Arquitecto'},{num:'04',label:'Atención'},{num:'05',label:'Feedback'},{num:'06',label:'Micro-progresos'},{num:'07',label:'Generaciones'},{num:'08',label:'Laboratorio'},{num:'09',label:'Cierre'}];
+    this.CHAPTERS=[{num:'00',label:'Apertura'},{num:'01',label:'Diagnóstico'},{num:'02',label:'Ruta'},{num:'03',label:'Equipos'},{num:'04',label:'El Arquitecto'},{num:'05',label:'Atención'},{num:'06',label:'Feedback'},{num:'07',label:'Pizarra'},{num:'08',label:'Micro-progresos'},{num:'09',label:'Generaciones'},{num:'10',label:'Laboratorio'},{num:'11',label:'Compromisos'},{num:'12',label:'Cierre'}];
     this.POLL=[{id:'atencion',label:'Falta de atención',color:'#5ce1ff'},{id:'participacion',label:'Baja participación',color:'#ffb84d'},{id:'ia',label:'Uso excesivo de IA',color:'#a78bfa'},{id:'lectura',label:'Poca lectura',color:'#34d399'},{id:'motivacion',label:'Escasa motivación',color:'#fb7185'},{id:'ausentismo',label:'Ausentismo',color:'#f472d0'},{id:'otras',label:'Otras',color:'#94a3b8'}];
     this.PROFESSIONS=[{role:'Ingeniero',icon:'⬡',designs:'estructuras',accent:'#8b93a7',border:'rgba(255,255,255,.08)',bg:'rgba(255,255,255,.02)'},{role:'Arquitecto',icon:'◳',designs:'espacios',accent:'#8b93a7',border:'rgba(255,255,255,.08)',bg:'rgba(255,255,255,.02)'},{role:'Abogado',icon:'§',designs:'normas',accent:'#8b93a7',border:'rgba(255,255,255,.08)',bg:'rgba(255,255,255,.02)'},{role:'Docente',icon:'◈',designs:'experiencias de aprendizaje',accent:'#5ce1ff',border:'rgba(92,225,255,.4)',bg:'rgba(92,225,255,.07)'}];
     this.WANTED=['Participar','Preguntar','Investigar','Resolver problemas','Colaborar','Leer'];
@@ -529,16 +645,19 @@ class Component extends DCLogic {
     this.GEN_KEYS=['z','mil','adt'];
     this.GEN_COLORS={z:'#ffb84d',mil:'#5ce1ff',adt:'#a78bfa'};
     this.LABDEF={atencion:{title:'1 · Atención',color:'#5ce1ff',options:['Pregunta de alto impacto','Caso real o dilema','Dato sorprendente','Reto cronometrado']},feedback:{title:'2 · Feedback',color:'#34d399',options:['Semáforo de comprensión','Kahoot / Quizizz','Mentimeter en vivo','Revisión entre pares']},progreso:{title:'3 · Micro-progreso',color:'#a78bfa',options:['Escalera de micro-metas','Entregas incrementales','Rúbrica por niveles','Proyecto por etapas']}};
-    this.MODS=[{n:'1',label:'Arquitecto',ch:3},{n:'2',label:'Atención',ch:4},{n:'3',label:'Feedback',ch:5},{n:'4',label:'Progreso',ch:6},{n:'5',label:'Generaciones',ch:7},{n:'6',label:'Laboratorio',ch:8}];
+    this.MODS=[{n:'1',label:'Arquitecto',ch:4},{n:'2',label:'Atención',ch:5},{n:'3',label:'Feedback',ch:6},{n:'4',label:'Progreso',ch:8},{n:'5',label:'Generaciones',ch:9},{n:'6',label:'Laboratorio',ch:10}];
     this.DIAG_Q=['Cambio de actividad al menos una vez cada 10–15 minutos.','Utilizo preguntas o dinámicas para mantener la participación.','Proporciono retroalimentación durante la clase, no solo en los exámenes.','Mis estudiantes realizan actividades prácticas durante la sesión.','Relaciono los contenidos con problemas reales de la profesión.','Utilizo herramientas digitales o IA para apoyar el aprendizaje.','Divido competencias complejas en pequeños pasos de aprendizaje.','Verifico constantemente si los estudiantes están comprendiendo.','Mis estudiantes participan activamente más del 30% del tiempo de clase.','Ajusto mi metodología según las respuestas y necesidades del grupo.'];
     this.DIAG_SCALE=[{v:1,l:'Nunca'},{v:2,l:'Rara vez'},{v:3,l:'Algunas veces'},{v:4,l:'Frecuentemente'},{v:5,l:'Siempre'}];
     this.DIAG_COLORS=['#fb7185','#f59e6b','#ffb84d','#9bd36a','#34d399'];
     this.DIAG_PROFILES=[{min:10,max:25,name:'Aula Tradicional',color:'#fb7185',icon:'▤',desc:'La enseñanza se centra en la exposición del docente. Hay gran oportunidad para incorporar participación, feedback y práctica.'},{min:26,max:40,name:'Aula en Transición',color:'#ffb84d',icon:'◑',desc:'Ya hay prácticas activas, pero se puede fortalecer la participación continua y el diseño conductual.'},{min:41,max:50,name:'Aula de Alto Impacto',color:'#34d399',icon:'◆',desc:'La experiencia está diseñada estratégicamente para generar atención, participación y progreso continuo.'}];
-    this.FOLLOW={3:{tag:'BLOQUE 03',color:'#5ce1ff',icon:'◈',title:'El docente como arquitecto',idea:'No solo enseñamos contenidos: diseñamos conductas. Si algo ocurre con frecuencia en su aula, el entorno lo está favoreciendo.'},4:{tag:'BLOQUE 04',color:'#5ce1ff',icon:'◆',title:'Diseño de la atención',idea:'Movimiento, novedad, contraste, relevancia y desafío capturan la atención. Regla 10–2: cada 10 min de exposición, 2 de actividad.'},6:{tag:'BLOQUE 06',color:'#a78bfa',icon:'▲',title:'Micro-progresos',idea:'Nadie domina una competencia compleja de una sola vez. Divídala en pasos pequeños, ordenados y alcanzables.'}};
+    this.FOLLOW={4:{tag:'BLOQUE 04',color:'#5ce1ff',icon:'◈',title:'El docente como arquitecto',idea:'No solo enseñamos contenidos: diseñamos conductas. Si algo ocurre con frecuencia en su aula, el entorno lo está favoreciendo.'},5:{tag:'BLOQUE 05',color:'#5ce1ff',icon:'◆',title:'Diseño de la atención',idea:'Movimiento, novedad, contraste, relevancia y desafío capturan la atención. Regla 10–2: cada 10 min de exposición, 2 de actividad.'},8:{tag:'BLOQUE 08',color:'#a78bfa',icon:'▲',title:'Micro-progresos',idea:'Nadie domina una competencia compleja de una sola vez. Divídala en pasos pequeños, ordenados y alcanzables.'}};
     this.ROUTES={trad:{name:'Tradicional',color:'#8b93a7',icon:'▤',tagline:'Clases magistrales con estructura probada',lab:{atencion:['Pregunta socrática de apertura','Anécdota profesional relevante','Revisión dialogada de clase anterior','Caso histórico como gancho'],feedback:['Preguntas orales directas al grupo','Pausa-reflexión: escribe y comparte','Resolución colectiva en pizarra','Quiz sorpresa de 3 preguntas'],progreso:['Resumen acumulativo semanal','Tareas graduales por complejidad','Examen formativo de bajo peso','Portafolio de evidencias']}},tech:{name:'Tecnológica',color:'#5ce1ff',icon:'⬡',tagline:'Apoyada en herramientas digitales e IA',lab:{atencion:['Prompt con IA en vivo ante el grupo','Demo de herramienta digital nueva','Dato de tendencia tecnológica actual','Reto de búsqueda en tiempo real'],feedback:['Kahoot / Quizizz en vivo','Mentimeter para respuestas anónimas','Google Forms exprés al final','ChatGPT colaborativo para evaluar'],progreso:['Entrega digital incremental','Proyecto en Notion / GitHub','Dashboard de avance visible','Badge digital por etapa cumplida']}},innov:{name:'Innovadora',color:'#34d399',icon:'◆',tagline:'Metodologías activas y aula invertida',lab:{atencion:['Aula invertida: video previo + debate','Caso real desafiante sin solución dada','Pregunta de alto impacto inicial','Gamificación de apertura con reto'],feedback:['Peer review estructurado entre pares','Semáforo de comprensión en vivo','Exit ticket: una frase + una duda','Co-rúbrica construida con el grupo'],progreso:['Proyecto basado en problemas (PBL)','Sprint semanal con entregable','Rúbrica de autonomía visible','Prototipo incremental por sprint']}},crea:{name:'Creativa',color:'#fb7185',icon:'◑',tagline:'Pensamiento lateral y expresión original',lab:{atencion:['Imagen o video provocador sin contexto','Dilema ético con múltiples lecturas','Sketchnote inicial: dibuja lo que sientes','Apertura narrativa inmersiva'],feedback:['Votación visual con imágenes','Mapa mental en vivo colaborativo','Collage conceptual grupal','Debate creativo: argumenta lo opuesto'],progreso:['Portfolio visual progresivo','Prototipo en papel por etapas','Presentación creativa final','Obra o producto original como cierre']}},invest:{name:'Investigativa',color:'#a78bfa',icon:'◈',tagline:'Basada en evidencia y proyectos académicos',lab:{atencion:['Hipótesis inicial: ¿qué creen ustedes?','Contradicción entre dos fuentes reales','Dato estadístico sorprendente','Pregunta de investigación abierta'],feedback:['Revisión crítica de fuentes en pares','Debate académico con posiciones','Evaluación de calidad de evidencias','Discusión socrática guiada'],progreso:['Informe por secciones semanales','Marco teórico incremental','Presentación de avance parcial','Publicación o divulgación académica']}},game:{name:'Gamificada',color:'#ffb84d',icon:'▲',tagline:'Retos, niveles y motivación por logros',lab:{atencion:['Reto cronometrado de apertura (2 min)','Misión de la sesión revelada en video','Trivia flash de conocimiento previo','Boss battle: el error más común'],feedback:['Puntos por respuesta correcta en vivo','Ranking visible en pantalla','Power-up: bonus por explicar a un par','Kahoot con apuestas de puntos'],progreso:['XP acumulada por módulo','Niveles de competencia desbloqueables','Misiones secuenciales con recompensa','Logro final: badge de experto']}}};
     this.ROUTE_KEYS=['trad','tech','innov','crea','invest','game'];
+    this.TEAM_SCENARIOS=['Su rector pide implementar IA generativa en todas las clases del próximo semestre. ¿Cuál sería su plan de 3 pasos para integrarlo sin perder el aprendizaje significativo?','Sus estudiantes obtienen un 60% de reprobación en el primer parcial. Diseñe una estrategia de recuperación usando las 3 palancas vistas hoy: atención, feedback y micro-progreso.','Tiene 50 minutos para enseñar un tema denso a un grupo con poca motivación. Diseñe la estructura de su clase aplicando la regla 10–2.','Su institución le pide diseñar un curso 100% en línea. ¿Cómo adaptaría los principios de arquitectura del aula al entorno virtual?'];
+    this.TEAM_COLORS={A:'#5ce1ff',B:'#34d399',C:'#a78bfa',D:'#ffb84d'};
+    this.PIZARRA_Q=['¿Cuál estrategia de atención usará en su próxima clase?','¿Qué tipo de feedback implementará esta semana con sus estudiantes?','¿Cómo dividirá su competencia más compleja en micro-pasos?','¿Qué herramienta digital integrará primero en su práctica?','Complete: "En mi aula, el principal cambio que haré es…"'];
     const BASE='arqaula/upes2026';
-    this.T={join:BASE+'/join',hb:BASE+'/hb',state:BASE+'/state',agg:BASE+'/agg',vote:BASE+'/vote',sem:BASE+'/sem',diag:BASE+'/diag',gen:BASE+'/gen',lab:BASE+'/lab',route:BASE+'/route'};
+    this.T={join:BASE+'/join',hb:BASE+'/hb',state:BASE+'/state',agg:BASE+'/agg',vote:BASE+'/vote',sem:BASE+'/sem',diag:BASE+'/diag',gen:BASE+'/gen',lab:BASE+'/lab',route:BASE+'/route',team:BASE+'/team',idea:BASE+'/idea',commit:BASE+'/commit'};
     let id=null; try{id=localStorage.getItem('arqaula_id');}catch(e){}
     if(!id){id='u'+Math.random().toString(16).slice(2,10); try{localStorage.setItem('arqaula_id',id);}catch(e){}}
     this.myId=id;
@@ -554,13 +673,18 @@ class Component extends DCLogic {
       gen:'z', route:null,
       // realtime by-id maps (presenter)
       participants:{}, votesById:{}, semById:{}, diagById:{}, genById:{}, labById:{}, routeById:{},
+      teamSubsById:{}, ideasById:{}, commitsById:{},
+      teamScenario:0, pizarraQ:0, timerEnd:null, timerNow:Date.now(),
       // participant local
       joined:false, nameDraft:'', myName:'',
       myVote:null, mySem:null, myGen:null, myRoute:null,
       diag:Array(10).fill(null), diagSent:false,
       lab:{atencion:null,feedback:null,progreso:null}, labDone:false,
+      teamSubDraft:'', myTeamSubText:'',
+      ideaDraft:'', myIdeaText:'',
+      commitDraft:'', myCommitText:'',
       // participant received
-      pChapter:null, pAgg:null, pRoute:null,
+      pChapter:null, pAgg:null, pRoute:null, pPizarraQ:0, pTeamScenario:0,
     };
   }
   shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
@@ -577,7 +701,7 @@ class Component extends DCLogic {
     this.syncChapters(); this.maybeQR();
   }
   componentDidUpdate(){ this.syncChapters(); this.maybeQR(); }
-  componentWillUnmount(){ window.removeEventListener('keydown',this._key); clearInterval(this.pruneTimer); clearInterval(this.hbTimer); clearInterval(this._raceT); try{this.client&&this.client.end(true);}catch(e){} }
+  componentWillUnmount(){ window.removeEventListener('keydown',this._key); clearInterval(this.pruneTimer); clearInterval(this.hbTimer); clearInterval(this._raceT); clearInterval(this._timerT); try{this.client&&this.client.end(true);}catch(e){} }
   waitLib(cb,n){n=n||0; if(window.mqtt){cb();} else if(n<60){setTimeout(()=>this.waitLib(cb,n+1),100);}}
 
   syncChapters(){ if(this.effRole()!=='presenter')return; const wrap=document.getElementById('chapter-wrap'); if(!wrap)return; [...wrap.children].forEach((el,i)=>{const on=i===this.state.chapter; el.style.display=on?'flex':'none'; if(on)el.scrollTop=0;}); }
@@ -588,7 +712,7 @@ class Component extends DCLogic {
     clearInterval(this.hbTimer); this.setState({connected:false});
     const c=window.mqtt.connect('wss://broker.emqx.io:8084/mqtt',{clientId:'arq_'+role+'_'+Math.random().toString(16).slice(2,8),clean:true,reconnectPeriod:2500,connectTimeout:8000,keepalive:30});
     this.client=c;
-    c.on('connect',()=>{ this.setState({connected:true}); if(this.effRole()==='presenter'){ c.subscribe([this.T.join,this.T.hb,this.T.vote,this.T.sem,this.T.diag,this.T.gen,this.T.lab,this.T.route]); this.pubState(); this.pubAgg(); } else { c.subscribe([this.T.state,this.T.agg]); if(this.state.joined)this.publishJoin(); } });
+    c.on('connect',()=>{ this.setState({connected:true}); if(this.effRole()==='presenter'){ c.subscribe([this.T.join,this.T.hb,this.T.vote,this.T.sem,this.T.diag,this.T.gen,this.T.lab,this.T.route,this.T.team,this.T.idea,this.T.commit]); this.pubState(); this.pubAgg(); } else { c.subscribe([this.T.state,this.T.agg]); if(this.state.joined)this.publishJoin(); } });
     c.on('message',(t,p)=>this.onMsg(t,p));
     c.on('close',()=>this.setState({connected:false}));
     c.on('error',()=>{});
@@ -603,12 +727,15 @@ class Component extends DCLogic {
       else if(topic===this.T.gen){ if(!d.id)return; this.setState(s=>({genById:{...s.genById,[d.id]:d.gen}}),()=>this.pubAgg()); }
       else if(topic===this.T.lab){ if(!d.id)return; this.setState(s=>({labById:{...s.labById,[d.id]:{name:d.name,atencion:d.atencion,feedback:d.feedback,progreso:d.progreso,ts:Date.now()}}}),()=>this.pubAgg()); }
       else if(topic===this.T.route){ if(!d.id)return; this.setState(s=>({routeById:{...s.routeById,[d.id]:d.route}}),()=>this.pubAgg()); }
+      else if(topic===this.T.team){ if(!d.id)return; this.setState(s=>({teamSubsById:{...s.teamSubsById,[d.id]:{team:d.team,text:d.text,name:d.name,ts:Date.now()}}})); }
+      else if(topic===this.T.idea){ if(!d.id)return; this.setState(s=>({ideasById:{...s.ideasById,[d.id]:{text:d.text,name:d.name,ts:Date.now()}}})); }
+      else if(topic===this.T.commit){ if(!d.id)return; this.setState(s=>({commitsById:{...s.commitsById,[d.id]:{text:d.text,name:d.name,ts:Date.now()}}})); }
     } else {
-      if(topic===this.T.state){ this.setState({pChapter:d.chapter,pRoute:d.route||null}); }
+      if(topic===this.T.state){ this.setState({pChapter:d.chapter,pRoute:d.route||null,pPizarraQ:d.pizarraQ||0,pTeamScenario:d.teamScenario||0}); }
       else if(topic===this.T.agg){ this.setState({pAgg:d}); }
     }
   }
-  pubState(){ if(this.client&&this.state.connected)this.client.publish(this.T.state,JSON.stringify({chapter:this.state.chapter,route:this.state.route}),{retain:true}); }
+  pubState(){ if(this.client&&this.state.connected)this.client.publish(this.T.state,JSON.stringify({chapter:this.state.chapter,route:this.state.route,pizarraQ:this.state.pizarraQ,teamScenario:this.state.teamScenario}),{retain:true}); }
   pubAgg(){
     if(!(this.client&&this.state.connected))return;
     const s=this.state;
@@ -654,6 +781,16 @@ class Component extends DCLogic {
   genModel(){const l=this.state.lab;if(!(l.atencion&&l.feedback&&l.progreso))return;this.setState({labDone:true});if(this.client&&this.state.connected)this.client.publish(this.T.lab,JSON.stringify({id:this.myId,name:this.state.myName,atencion:l.atencion,feedback:l.feedback,progreso:l.progreso}));}
   resetLab(){this.setState({lab:{atencion:null,feedback:null,progreso:null},labDone:false});}
   printPlan(){try{window.print();}catch(e){}}
+  getTeam(id){let h=0;for(let i=0;i<id.length;i++)h=(h+id.charCodeAt(i))%4;return ['A','B','C','D'][h];}
+  startTimer(mins){clearInterval(this._timerT);this.setState({timerEnd:Date.now()+mins*60000,timerNow:Date.now()});this._timerT=setInterval(()=>this.setState({timerNow:Date.now()}),1000);}
+  stopTimer(){clearInterval(this._timerT);this.setState({timerEnd:null});}
+  nextPizarraQ(){this.setState(s=>({pizarraQ:(s.pizarraQ+1)%this.PIZARRA_Q.length}),()=>this.pubState());}
+  clearIdeas(){this.setState({ideasById:{}});}
+  setTeamScenario(i){this.setState({teamScenario:i},()=>this.pubState());}
+  sendTeamSub(){const text=(this.state.teamSubDraft||'').trim();if(!text)return;const team=this.getTeam(this.myId);this.setState({myTeamSubText:text,teamSubDraft:''});if(this.client&&this.state.connected)this.client.publish(this.T.team,JSON.stringify({id:this.myId,name:this.state.myName,team,text}));}
+  sendIdea(){const text=(this.state.ideaDraft||'').trim();if(!text)return;this.setState({myIdeaText:text,ideaDraft:''});if(this.client&&this.state.connected)this.client.publish(this.T.idea,JSON.stringify({id:this.myId,name:this.state.myName,text}));}
+  resetIdea(){this.setState({myIdeaText:'',ideaDraft:''});}
+  sendCommitment(){const text=(this.state.commitDraft||'').trim();if(!text)return;this.setState({myCommitText:text,commitDraft:''});if(this.client&&this.state.connected)this.client.publish(this.T.commit,JSON.stringify({id:this.myId,name:this.state.myName,text}));}
   toggleRole(){const next=this.effRole()==='presenter'?'participant':'presenter';this.setState({roleOverride:next},()=>this.connect(next));}
 
   renderVals(){
@@ -682,6 +819,26 @@ class Component extends DCLogic {
     const genC={z:0,mil:0,adt:0}; Object.values(s.genById).forEach(g=>{if(genC[g]!=null)genC[g]++;}); const genTot=genC.z+genC.mil+genC.adt; const genMax=Math.max(1,genC.z,genC.mil,genC.adt);
     const genDist=this.GEN_KEYS.map(k=>{const c=genC[k];const col=this.GEN_COLORS[k];return {name:this.GENERATIONS[k].name,color:col,bdr:col+'40',bg:col+'10',pct:genTot?Math.round(c/genTot*100)+'%':'0%',width:(c/genMax*100)+'%'};});
 
+    // ---- presenter equipos ----
+    const myTeam=this.getTeam(this.myId);
+    const myTeamColor=this.TEAM_COLORS[myTeam];
+    const scenarioTabs=this.TEAM_SCENARIOS.map((sc,i)=>({n:(i+1).toString(),bg:i===s.teamScenario?'rgba(251,113,133,.15)':'rgba(255,255,255,.04)',bdr:i===s.teamScenario?'#fb7185':'rgba(255,255,255,.1)',col:i===s.teamScenario?'#fff':'#8b93a7',onClick:()=>this.setTeamScenario(i)}));
+    const activeScenario=this.TEAM_SCENARIOS[s.teamScenario]||this.TEAM_SCENARIOS[0];
+    const teamBoxes=['A','B','C','D'].map(team=>{const subs=Object.values(s.teamSubsById).filter(x=>x.team===team).sort((a,b)=>b.ts-a.ts).slice(0,4);const color=this.TEAM_COLORS[team];return {team,color,count:subs.length,subs:subs.map(x=>({name:x.name||'Docente',text:x.text})),bdr:color+'40',bg:color+'08'};});
+    const teamSubTotal=Object.keys(s.teamSubsById).length;
+    const timerMs=s.timerEnd?Math.max(0,s.timerEnd-s.timerNow):null;
+    const timerMins=timerMs!==null?Math.floor(timerMs/60000):'-';
+    const timerSecs=timerMs!==null?Math.floor((timerMs%60000)/1000).toString().padStart(2,'0'):'-';
+    const timerDisplay=timerMs!==null?(timerMins+':'+timerSecs):'--:--';
+    const timerColor=timerMs!==null&&timerMs<60000?'#fb7185':(timerMs!==null?'#ffb84d':'#5b6478');
+    // ---- presenter pizarra ----
+    const ideaCards=Object.values(s.ideasById).sort((a,b)=>b.ts-a.ts).slice(0,24).map(x=>({name:x.name||'Docente',text:x.text}));
+    const ideasTotal=Object.keys(s.ideasById).length;
+    const pizarraQNum=((s.pizarraQ||0)+1)+'/'+this.PIZARRA_Q.length;
+    const activePizarraQ=this.PIZARRA_Q[s.pizarraQ||0]||this.PIZARRA_Q[0];
+    // ---- presenter compromisos ----
+    const commitCards=Object.values(s.commitsById).sort((a,b)=>b.ts-a.ts).map(x=>({name:x.name||'Docente',text:x.text}));
+    const commitCount=Object.keys(s.commitsById).length;
     // ---- presenter lab feed ----
     const labArr=Object.values(s.labById).sort((a,b)=>b.ts-a.ts).slice(0,6);
     const labFeed=labArr.map(l=>({name:l.name||'Docente',atencion:l.atencion,feedback:l.feedback,progreso:l.progreso}));
@@ -704,6 +861,10 @@ class Component extends DCLogic {
     const moduleRail=this.MODS.map(m=>{const active=chapter===m.ch;const done=chapter>m.ch;return {n:m.n,label:m.label,onClick:()=>this.goTo(m.ch),dotBg:active?'#5ce1ff':(done?'rgba(92,225,255,.2)':'transparent'),dotCol:active?'#07080d':(done?'#5ce1ff':'#5b6478'),dotBdr:active?'#5ce1ff':(done?'rgba(92,225,255,.4)':'rgba(255,255,255,.18)'),txtCol:active?'#fff':(done?'#aeb7c7':'#5b6478')};});
     const navItems=this.CHAPTERS.map((c,i)=>({num:c.num,label:c.label,numColor:i===chapter?'#5ce1ff':'#5b6478',dotW:i===chapter?'22px':'6px',dotBg:i===chapter?'#5ce1ff':'rgba(255,255,255,.18)',onClick:()=>this.goTo(i)}));
 
+    // ---- participant new blocks ----
+    const pActiveScenario=this.TEAM_SCENARIOS[s.pTeamScenario]||this.TEAM_SCENARIOS[0];
+    const teamSubHasDraft=(s.teamSubDraft||'').trim().length>0;
+    const pActivePizarraQ=this.PIZARRA_Q[s.pPizarraQ||0]||this.PIZARRA_Q[0];
     // ---- participant ----
     const pc=s.pChapter; const joined=s.joined;
     const agg=s.pAgg||{poll:{counts:{},total:0},sem:{verde:0,amarillo:0,rojo:0},diag:{count:0,avg:0,profiles:[0,0,0]},gen:{z:0,mil:0,adt:0},lab:{count:0}};
@@ -779,6 +940,12 @@ class Component extends DCLogic {
       routeCards, routeDist, activeRoute, routeActive:s.route!=null, routeLabel:activeRoute?activeRoute.name:'Sin ruta', routeColor:activeRoute?activeRoute.color:'#5b6478', routeIcon:activeRoute?activeRoute.icon:'·',
       // presenter lab
       labCount, labFeed, labEmpty:labCount===0,
+      // presenter equipos
+      scenarioTabs, activeScenario, teamBoxes, teamSubTotal, timerDisplay, timerColor, startTimer5:()=>this.startTimer(5), startTimer10:()=>this.startTimer(10), stopTimerFn:()=>this.stopTimer(),
+      // presenter pizarra
+      activePizarraQ, pizarraQNum, ideaCards, ideasTotal, ideasEmpty:ideasTotal===0, nextPizarraQFn:()=>this.nextPizarraQ(), clearIdeasFn:()=>this.clearIdeas(),
+      // presenter compromisos
+      commitCards, commitCount, commitEmpty:commitCount===0,
       // participant
       pShowJoin:!joined,
       pJoinedHeader: joined && pc!=null,
@@ -788,14 +955,30 @@ class Component extends DCLogic {
       pIsPoll:pf(0), pollOptions, pVoted:s.myVote!=null, pPollBars, pPollTotal:ppt,
       pIsDiag:pf(1), diagItems, diagAnswered, diagAnsweredW:(diagAnswered/10*100)+'%', diagNotSent:!s.diagSent, diagSent:s.diagSent, sendDiag:()=>this.sendDiag(), diagSendBg:diagDone?'linear-gradient(90deg,#5ce1ff,#a78bfa)':'rgba(255,255,255,.1)', diagSendOpacity:diagDone?'1':'.5',
       diagTotal, profName:pprof.name, profIcon:pprof.icon, profDesc:pprof.desc, gaugeColor:pprof.color, profBorder:pprof.color+'59', profBg:pprof.color+'14', gaugeOffset:(GC*(1-pFrac)).toFixed(1),
-      pIsFollow:(pf(3)||pf(4)||pf(6)), followTag:fol.tag, followColor:fol.color||'#5ce1ff', followIcon:fol.icon, followTitle:fol.title, followIdea:fol.idea,
-      pIsSem:pf(5), semOptions, semSet:s.mySem!=null, pSemBars, pSemTotal:asemT,
-      pIsGen:pf(7), genOptions, genSet:s.myGen!=null, myGenName:s.myGen?this.GENERATIONS[s.myGen].name:'', myGenStrategy:s.myGen?this.GENERATIONS[s.myGen].strategy:'', pGenBars,
-      pIsLab:pf(8), labSections, labReadyOpacity:labReady?'1':'.5', labBtnBg:labReady?'linear-gradient(90deg,#5ce1ff,#a78bfa)':'rgba(255,255,255,.1)', genModelFn:()=>this.genModel(), labDone:s.labDone, labAtencion:s.lab.atencion, labFeedback:s.lab.feedback, labProgreso:s.lab.progreso, resetLab:()=>this.resetLab(), printPlan:()=>this.printPlan(),
+      pIsFollow:(pf(4)||pf(5)||pf(8)), followTag:fol.tag, followColor:fol.color||'#5ce1ff', followIcon:fol.icon, followTitle:fol.title, followIdea:fol.idea,
+      pIsSem:pf(6), semOptions, semSet:s.mySem!=null, pSemBars, pSemTotal:asemT,
+      pIsGen:pf(9), genOptions, genSet:s.myGen!=null, myGenName:s.myGen?this.GENERATIONS[s.myGen].name:'', myGenStrategy:s.myGen?this.GENERATIONS[s.myGen].strategy:'', pGenBars,
+      pIsLab:pf(10), labSections, labReadyOpacity:labReady?'1':'.5', labBtnBg:labReady?'linear-gradient(90deg,#5ce1ff,#a78bfa)':'rgba(255,255,255,.1)', genModelFn:()=>this.genModel(), labDone:s.labDone, labAtencion:s.lab.atencion, labFeedback:s.lab.feedback, labProgreso:s.lab.progreso, resetLab:()=>this.resetLab(), printPlan:()=>this.printPlan(),
       pIsRoute:pf(2), pRouteOptions, myRouteObj, myRoutePicked:s.myRoute!=null, myRouteName:myRouteObj?myRouteObj.name:'', myRouteColor:myRouteObj?myRouteObj.color:'#5ce1ff', myRouteIcon:myRouteObj?myRouteObj.icon:'', myRouteTagline:myRouteObj?myRouteObj.tagline:'', pSessionRoute, pSessionRouteName:pSessionRoute?pSessionRoute.name:'', pSessionRouteColor:pSessionRoute?pSessionRoute.color:'#5ce1ff',
-      pIsClose:pf(9), hasPlan:s.labDone,
+      pIsClose:pf(12), hasPlan:s.labDone,
+      // new blocks participant flags + data
+      pIsEquipos:pf(3), pIsPizarra:pf(7), pIsCommit:pf(11),
+      myTeam, myTeamColor, pActiveScenario,
+      noTeamSub:!s.myTeamSubText, hasTeamSub:!!s.myTeamSubText, myTeamSubText:s.myTeamSubText,
+      teamSubDraft:s.teamSubDraft, onTeamSubDraft:(e)=>this.setState({teamSubDraft:e&&e.target?e.target.value:''}),
+      teamSubBtnBg:teamSubHasDraft?'linear-gradient(90deg,#fb7185,#ffb84d)':'rgba(255,255,255,.1)', teamSubBtnOpacity:teamSubHasDraft?'1':'.5',
+      sendTeamSubFn:()=>this.sendTeamSub(),
+      pActivePizarraQ,
+      noMyIdea:!s.myIdeaText, hasMyIdea:!!s.myIdeaText, myIdeaText:s.myIdeaText,
+      ideaDraft:s.ideaDraft, onIdeaDraft:(e)=>this.setState({ideaDraft:e&&e.target?e.target.value:''}),
+      ideaBtnOpacity:(s.ideaDraft||'').trim().length>0?'1':'.5',
+      sendIdeaFn:()=>this.sendIdea(), resetIdeaFn:()=>this.resetIdea(),
+      noMyCommit:!s.myCommitText, hasMyCommit:!!s.myCommitText, myCommitText:s.myCommitText,
+      commitDraft:s.commitDraft, onCommitDraft:(e)=>this.setState({commitDraft:e&&e.target?e.target.value:''}),
+      commitBtnBg:(s.commitDraft||'').trim().length>0?'linear-gradient(90deg,#34d399,#5ce1ff)':'rgba(255,255,255,.1)', commitBtnOpacity:(s.commitDraft||'').trim().length>0?'1':'.5',
+      sendCommitFn:()=>this.sendCommitment(),
       // print plan
-      planName:s.myName||'Docente', planProfile, planRoute:myRouteObj?myRouteObj.name:'No seleccionada', planAtencion:s.lab.atencion||'—', planFeedback:s.lab.feedback||'—', planProgreso:s.lab.progreso||'—',
+      planName:s.myName||'Docente', planProfile, planRoute:myRouteObj?myRouteObj.name:'No seleccionada', planAtencion:s.lab.atencion||'—', planFeedback:s.lab.feedback||'—', planProgreso:s.lab.progreso||'—', planCommit:s.myCommitText||'—',
     };
   }
 }
