@@ -68,9 +68,10 @@
         <div style="width:24px;height:24px;border:1.5px solid #5ce1ff;border-radius:5px;position:relative;flex:none"><div style="position:absolute;inset:5px;border:1.5px solid rgba(92,225,255,.45);border-radius:2px"></div></div>
         <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;color:#8b93a7">ARQUITECTURA&nbsp;DEL&nbsp;AULA</span>
       </div>
-      <div style="position:absolute;top:18px;right:24px;display:flex;align-items:center;gap:14px;z-index:30">
+      <div style="position:absolute;top:18px;right:24px;display:flex;align-items:center;gap:10px;z-index:30">
         <div style="display:flex;align-items:center;gap:7px;background:rgba(18,21,31,.6);border:1px solid rgba(52,211,153,.25);border-radius:999px;padding:5px 12px"><span style="width:7px;height:7px;border-radius:50%;background:#34d399;box-shadow:0 0 8px #34d399;animation:blink 1.4s infinite"></span><span style="font-family:'JetBrains Mono';font-size:12px;color:#fff">{{ liveCount }}</span><span style="font-size:11px;color:#8b93a7">en vivo</span></div>
-        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.18em;color:#5ce1ff">{{ chapNum }} <span style="color:#465065">/ 08</span></span>
+        <div style="display:flex;align-items:center;gap:7px;background:rgba(18,21,31,.6);border:1px solid {{ routeColor }}44;border-radius:999px;padding:5px 12px"><span style="font-size:14px;color:{{ routeColor }}">{{ routeIcon }}</span><span style="font-family:'JetBrains Mono';font-size:11px;color:{{ routeColor }}">{{ routeLabel }}</span></div>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.18em;color:#5ce1ff">{{ chapNum }} <span style="color:#465065">/ 09</span></span>
       </div>
 
       <!-- module rail -->
@@ -163,6 +164,34 @@
                     </div>
                   </sc-for>
                   <div style="border-left:3px solid #5ce1ff;padding:4px 0 4px 16px;margin-top:4px"><p style="margin:0;font-size:15px;color:#cbd3e1;line-height:1.5">Durante esta conferencia veremos cómo mover el aula hacia el <span style="color:#34d399">alto impacto</span>: atención, feedback y progreso.</p></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 02 RUTA DOCENTE -->
+          <section class="scrolly" style="position:absolute;inset:0;overflow-y:auto;display:none;flex-direction:column;justify-content:flex-start;padding:118px 5vw 90px">
+            <div class="rise" style="max-width:1240px;width:100%;margin:auto;display:flex;flex-direction:column;gap:22px">
+              <div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.28em;color:#a78bfa;margin-bottom:10px">BLOQUE 02 · ACTIVIDAD EN VIVO</div><h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(28px,4vw,50px);line-height:1.02;letter-spacing:-.02em;margin:0;color:#fff">Elige tu <span style="color:#a78bfa">ruta docente</span></h2><p style="margin:8px 0 0;color:#9aa3b5;font-size:16px">Cada ruta orienta los ejemplos, estrategias y el plan de clase final. Selecciona la que mejor describe tu estilo.</p></div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+                <sc-for list="{{ routeCards }}" as="rc" hint-placeholder-count="6">
+                  <button onClick="{{ rc.onClick }}" style="display:flex;flex-direction:column;gap:10px;text-align:left;border-radius:16px;padding:20px;cursor:pointer;transition:all .2s;background:{{ rc.bg }};border:2px solid {{ rc.bdr }}">
+                    <div style="display:flex;align-items:center;gap:10px"><span style="font-size:26px;color:{{ rc.color }}">{{ rc.icon }}</span><span style="font-family:'Space Grotesk';font-weight:700;font-size:18px;color:#fff">{{ rc.name }}</span></div>
+                    <p style="margin:0;font-size:13px;color:#9aa3b5;line-height:1.45">{{ rc.tagline }}</p>
+                  </button>
+                </sc-for>
+              </div>
+              <div style="border:1px solid rgba(255,255,255,.08);background:rgba(18,21,31,.5);border-radius:16px;padding:20px 24px">
+                <div style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.16em;color:#8b93a7;margin-bottom:14px">RUTAS DE LOS DOCENTES · EN VIVO</div>
+                <div style="display:flex;flex-direction:column;gap:9px">
+                  <sc-for list="{{ routeDist }}" as="rd" hint-placeholder-count="6">
+                    <div style="display:grid;grid-template-columns:22px 140px 1fr 36px;align-items:center;gap:10px">
+                      <span style="font-size:15px;color:{{ rd.color }}">{{ rd.icon }}</span>
+                      <span style="font-size:13.5px;color:#dfe5ef;font-weight:500">{{ rd.name }}</span>
+                      <span style="height:12px;border-radius:6px;background:rgba(255,255,255,.06);overflow:hidden"><span style="display:block;height:100%;border-radius:6px;transition:width .7s cubic-bezier(.16,1,.3,1);width:{{ rd.width }};background:{{ rd.color }}"></span></span>
+                      <span style="font-family:'JetBrains Mono';font-size:12px;color:#aeb7c7;text-align:right">{{ rd.count }}</span>
+                    </div>
+                  </sc-for>
                 </div>
               </div>
             </div>
@@ -310,7 +339,7 @@
       <button onClick="{{ next }}" style="position:absolute;right:18px;top:50%;transform:translateY(-50%);z-index:35;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.14);background:rgba(18,21,31,.6);color:#cfd6e2;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);opacity:{{ nextOpacity }}" style-hover="border-color:#5ce1ff;color:#5ce1ff">›</button>
 
       <div style="position:absolute;bottom:18px;left:50%;transform:translateX(-50%);z-index:35;display:flex;align-items:center;gap:7px;background:rgba(18,21,31,.6);border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:9px 14px;backdrop-filter:blur(8px)">
-        <sc-for list="{{ navItems }}" as="nv" hint-placeholder-count="9"><button onClick="{{ nv.onClick }}" title="{{ nv.label }}" style="display:flex;align-items:center;gap:7px;background:transparent;border:none;cursor:pointer;padding:5px 7px;border-radius:8px"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;transition:color .2s;color:{{ nv.numColor }}">{{ nv.num }}</span><span style="height:6px;border-radius:3px;transition:all .35s;width:{{ nv.dotW }};background:{{ nv.dotBg }}"></span></button></sc-for>
+        <sc-for list="{{ navItems }}" as="nv" hint-placeholder-count="10"><button onClick="{{ nv.onClick }}" title="{{ nv.label }}" style="display:flex;align-items:center;gap:7px;background:transparent;border:none;cursor:pointer;padding:5px 7px;border-radius:8px"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;transition:color .2s;color:{{ nv.numColor }}">{{ nv.num }}</span><span style="height:6px;border-radius:3px;transition:all .35s;width:{{ nv.dotW }};background:{{ nv.dotBg }}"></span></button></sc-for>
       </div>
       <button onClick="{{ toggleFs }}" title="Pantalla completa (F)" style="position:absolute;bottom:20px;right:20px;z-index:35;width:38px;height:38px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:rgba(18,21,31,.6);color:#8b93a7;cursor:pointer;backdrop-filter:blur(6px);font-size:15px;display:flex;align-items:center;justify-content:center" style-hover="color:#5ce1ff;border-color:#5ce1ff">⤢</button>
     </div>
@@ -380,7 +409,31 @@
           </div>
         </sc-if>
 
-        <!-- ch2/3/5 FOLLOW-ALONG -->
+        <!-- ch2 RUTA DOCENTE -->
+        <sc-if value="{{ pIsRoute }}" hint-placeholder-val="{{ false }}">
+          <div class="rise" style="display:flex;flex-direction:column;gap:14px">
+            <div><div style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.18em;color:#a78bfa">RUTA DOCENTE</div><h1 style="font-family:'Space Grotesk';font-weight:700;font-size:22px;line-height:1.2;margin:6px 0 0;color:#fff">¿Cuál describe mejor su estilo?</h1><p style="margin:6px 0 0;color:#8b93a7;font-size:13.5px">Esto personalizará su plan de clase al final.</p></div>
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <sc-for list="{{ pRouteOptions }}" as="ro" hint-placeholder-count="6">
+                <button onClick="{{ ro.onClick }}" style="display:flex;align-items:center;gap:13px;text-align:left;border-radius:14px;padding:15px;cursor:pointer;transition:all .18s;background:{{ ro.selBg }};border:1.5px solid {{ ro.selBdr }}">
+                  <span style="font-size:22px;color:{{ ro.color }};flex:none">{{ ro.icon }}</span>
+                  <div style="flex:1"><div style="font-family:'Space Grotesk';font-weight:600;font-size:16px;color:#fff">{{ ro.name }}</div><div style="font-size:12.5px;color:#8b93a7;margin-top:2px">{{ ro.tagline }}</div></div>
+                </button>
+              </sc-for>
+            </div>
+            <sc-if value="{{ myRoutePicked }}" hint-placeholder-val="{{ false }}">
+              <div style="border:1px solid {{ myRouteColor }}40;background:{{ myRouteColor }}10;border-radius:14px;padding:18px;animation:fadeUp .5s ease both;display:flex;align-items:center;gap:14px">
+                <span style="font-size:32px;color:{{ myRouteColor }}">{{ myRouteIcon }}</span>
+                <div><div style="font-family:'Space Grotesk';font-weight:700;font-size:19px;color:#fff">{{ myRouteName }}</div><div style="font-size:13px;color:#aeb7c7;margin-top:3px">{{ myRouteTagline }}</div><div style="font-family:'JetBrains Mono';font-size:11px;color:#34d399;margin-top:8px">✓ Selección registrada · el laboratorio final se adaptará a su ruta</div></div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ pSessionRoute }}" hint-placeholder-val="{{ false }}">
+              <div style="border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 15px;display:flex;align-items:center;gap:10px"><span style="font-size:14px;color:{{ pSessionRouteColor }}">●</span><span style="font-size:13px;color:#8b93a7">Conferencia orientada a ruta <span style="color:{{ pSessionRouteColor }};font-weight:600">{{ pSessionRouteName }}</span></span></div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <!-- ch3/4/6 FOLLOW-ALONG -->
         <sc-if value="{{ pIsFollow }}" hint-placeholder-val="{{ false }}">
           <div class="rise" style="margin:auto 0;display:flex;flex-direction:column;gap:16px;text-align:center;align-items:center">
             <div style="font-size:40px;color:{{ followColor }}">{{ followIcon }}</div>
@@ -448,7 +501,7 @@
 <!-- PRINT-ONLY plan -->
 <div id="plan-print" style="font-family:'Instrument Sans',sans-serif;color:#0a0a14;padding:48px 56px;max-width:760px;margin:0 auto">
   <div style="border-bottom:3px solid #0a0a14;padding-bottom:14px;margin-bottom:24px"><div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.2em;color:#5b6478">ARQUITECTURA DEL AULA · PLAN DE ACCIÓN DOCENTE</div><div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:30px;margin-top:8px">{{ planName }}</div></div>
-  <div style="margin-bottom:26px"><div style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.16em;color:#5b6478;margin-bottom:6px">SU DIAGNÓSTICO</div><div style="font-size:20px;font-weight:600">{{ planProfile }}</div></div>
+  <div style="display:flex;gap:28px;margin-bottom:26px"><div style="flex:1"><div style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.16em;color:#5b6478;margin-bottom:6px">SU DIAGNÓSTICO</div><div style="font-size:20px;font-weight:600">{{ planProfile }}</div></div><div style="flex:1"><div style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.16em;color:#5b6478;margin-bottom:6px">SU RUTA DOCENTE</div><div style="font-size:20px;font-weight:600">{{ planRoute }}</div></div></div>
   <div style="font-family:'JetBrains Mono';font-size:11px;letter-spacing:.16em;color:#5b6478;margin-bottom:14px">SU MODELO DE CLASE INNOVADORA</div>
   <div style="border:1px solid #d8dbe0;border-radius:10px;overflow:hidden">
     <div style="display:flex;border-bottom:1px solid #d8dbe0"><div style="width:170px;background:#f3f5f8;padding:16px;font-weight:600;border-right:1px solid #d8dbe0">Apertura · atención</div><div style="padding:16px;font-size:17px">{{ planAtencion }}</div></div>
@@ -463,7 +516,7 @@
 class Component extends DCLogic {
   constructor(props){
     super(props);
-    this.CHAPTERS=[{num:'00',label:'Apertura'},{num:'01',label:'Diagnóstico'},{num:'02',label:'El Arquitecto'},{num:'03',label:'Atención'},{num:'04',label:'Feedback'},{num:'05',label:'Micro-progresos'},{num:'06',label:'Generaciones'},{num:'07',label:'Laboratorio'},{num:'08',label:'Cierre'}];
+    this.CHAPTERS=[{num:'00',label:'Apertura'},{num:'01',label:'Diagnóstico'},{num:'02',label:'Ruta'},{num:'03',label:'El Arquitecto'},{num:'04',label:'Atención'},{num:'05',label:'Feedback'},{num:'06',label:'Micro-progresos'},{num:'07',label:'Generaciones'},{num:'08',label:'Laboratorio'},{num:'09',label:'Cierre'}];
     this.POLL=[{id:'atencion',label:'Falta de atención',color:'#5ce1ff'},{id:'participacion',label:'Baja participación',color:'#ffb84d'},{id:'ia',label:'Uso excesivo de IA',color:'#a78bfa'},{id:'lectura',label:'Poca lectura',color:'#34d399'},{id:'motivacion',label:'Escasa motivación',color:'#fb7185'},{id:'ausentismo',label:'Ausentismo',color:'#f472d0'},{id:'otras',label:'Otras',color:'#94a3b8'}];
     this.PROFESSIONS=[{role:'Ingeniero',icon:'⬡',designs:'estructuras',accent:'#8b93a7',border:'rgba(255,255,255,.08)',bg:'rgba(255,255,255,.02)'},{role:'Arquitecto',icon:'◳',designs:'espacios',accent:'#8b93a7',border:'rgba(255,255,255,.08)',bg:'rgba(255,255,255,.02)'},{role:'Abogado',icon:'§',designs:'normas',accent:'#8b93a7',border:'rgba(255,255,255,.08)',bg:'rgba(255,255,255,.02)'},{role:'Docente',icon:'◈',designs:'experiencias de aprendizaje',accent:'#5ce1ff',border:'rgba(92,225,255,.4)',bg:'rgba(92,225,255,.07)'}];
     this.WANTED=['Participar','Preguntar','Investigar','Resolver problemas','Colaborar','Leer'];
@@ -476,14 +529,16 @@ class Component extends DCLogic {
     this.GEN_KEYS=['z','mil','adt'];
     this.GEN_COLORS={z:'#ffb84d',mil:'#5ce1ff',adt:'#a78bfa'};
     this.LABDEF={atencion:{title:'1 · Atención',color:'#5ce1ff',options:['Pregunta de alto impacto','Caso real o dilema','Dato sorprendente','Reto cronometrado']},feedback:{title:'2 · Feedback',color:'#34d399',options:['Semáforo de comprensión','Kahoot / Quizizz','Mentimeter en vivo','Revisión entre pares']},progreso:{title:'3 · Micro-progreso',color:'#a78bfa',options:['Escalera de micro-metas','Entregas incrementales','Rúbrica por niveles','Proyecto por etapas']}};
-    this.MODS=[{n:'1',label:'Arquitecto',ch:2},{n:'2',label:'Atención',ch:3},{n:'3',label:'Feedback',ch:4},{n:'4',label:'Progreso',ch:5},{n:'5',label:'Generaciones',ch:6},{n:'6',label:'Laboratorio',ch:7}];
+    this.MODS=[{n:'1',label:'Arquitecto',ch:3},{n:'2',label:'Atención',ch:4},{n:'3',label:'Feedback',ch:5},{n:'4',label:'Progreso',ch:6},{n:'5',label:'Generaciones',ch:7},{n:'6',label:'Laboratorio',ch:8}];
     this.DIAG_Q=['Cambio de actividad al menos una vez cada 10–15 minutos.','Utilizo preguntas o dinámicas para mantener la participación.','Proporciono retroalimentación durante la clase, no solo en los exámenes.','Mis estudiantes realizan actividades prácticas durante la sesión.','Relaciono los contenidos con problemas reales de la profesión.','Utilizo herramientas digitales o IA para apoyar el aprendizaje.','Divido competencias complejas en pequeños pasos de aprendizaje.','Verifico constantemente si los estudiantes están comprendiendo.','Mis estudiantes participan activamente más del 30% del tiempo de clase.','Ajusto mi metodología según las respuestas y necesidades del grupo.'];
     this.DIAG_SCALE=[{v:1,l:'Nunca'},{v:2,l:'Rara vez'},{v:3,l:'Algunas veces'},{v:4,l:'Frecuentemente'},{v:5,l:'Siempre'}];
     this.DIAG_COLORS=['#fb7185','#f59e6b','#ffb84d','#9bd36a','#34d399'];
     this.DIAG_PROFILES=[{min:10,max:25,name:'Aula Tradicional',color:'#fb7185',icon:'▤',desc:'La enseñanza se centra en la exposición del docente. Hay gran oportunidad para incorporar participación, feedback y práctica.'},{min:26,max:40,name:'Aula en Transición',color:'#ffb84d',icon:'◑',desc:'Ya hay prácticas activas, pero se puede fortalecer la participación continua y el diseño conductual.'},{min:41,max:50,name:'Aula de Alto Impacto',color:'#34d399',icon:'◆',desc:'La experiencia está diseñada estratégicamente para generar atención, participación y progreso continuo.'}];
-    this.FOLLOW={2:{tag:'BLOQUE 02',color:'#5ce1ff',icon:'◈',title:'El docente como arquitecto',idea:'No solo enseñamos contenidos: diseñamos conductas. Si algo ocurre con frecuencia en su aula, el entorno lo está favoreciendo.'},3:{tag:'BLOQUE 03',color:'#5ce1ff',icon:'◆',title:'Diseño de la atención',idea:'Movimiento, novedad, contraste, relevancia y desafío capturan la atención. Regla 10–2: cada 10 min de exposición, 2 de actividad.'},5:{tag:'BLOQUE 05',color:'#a78bfa',icon:'▲',title:'Micro-progresos',idea:'Nadie domina una competencia compleja de una sola vez. Divídala en pasos pequeños, ordenados y alcanzables.'}};
+    this.FOLLOW={3:{tag:'BLOQUE 03',color:'#5ce1ff',icon:'◈',title:'El docente como arquitecto',idea:'No solo enseñamos contenidos: diseñamos conductas. Si algo ocurre con frecuencia en su aula, el entorno lo está favoreciendo.'},4:{tag:'BLOQUE 04',color:'#5ce1ff',icon:'◆',title:'Diseño de la atención',idea:'Movimiento, novedad, contraste, relevancia y desafío capturan la atención. Regla 10–2: cada 10 min de exposición, 2 de actividad.'},6:{tag:'BLOQUE 06',color:'#a78bfa',icon:'▲',title:'Micro-progresos',idea:'Nadie domina una competencia compleja de una sola vez. Divídala en pasos pequeños, ordenados y alcanzables.'}};
+    this.ROUTES={trad:{name:'Tradicional',color:'#8b93a7',icon:'▤',tagline:'Clases magistrales con estructura probada',lab:{atencion:['Pregunta socrática de apertura','Anécdota profesional relevante','Revisión dialogada de clase anterior','Caso histórico como gancho'],feedback:['Preguntas orales directas al grupo','Pausa-reflexión: escribe y comparte','Resolución colectiva en pizarra','Quiz sorpresa de 3 preguntas'],progreso:['Resumen acumulativo semanal','Tareas graduales por complejidad','Examen formativo de bajo peso','Portafolio de evidencias']}},tech:{name:'Tecnológica',color:'#5ce1ff',icon:'⬡',tagline:'Apoyada en herramientas digitales e IA',lab:{atencion:['Prompt con IA en vivo ante el grupo','Demo de herramienta digital nueva','Dato de tendencia tecnológica actual','Reto de búsqueda en tiempo real'],feedback:['Kahoot / Quizizz en vivo','Mentimeter para respuestas anónimas','Google Forms exprés al final','ChatGPT colaborativo para evaluar'],progreso:['Entrega digital incremental','Proyecto en Notion / GitHub','Dashboard de avance visible','Badge digital por etapa cumplida']}},innov:{name:'Innovadora',color:'#34d399',icon:'◆',tagline:'Metodologías activas y aula invertida',lab:{atencion:['Aula invertida: video previo + debate','Caso real desafiante sin solución dada','Pregunta de alto impacto inicial','Gamificación de apertura con reto'],feedback:['Peer review estructurado entre pares','Semáforo de comprensión en vivo','Exit ticket: una frase + una duda','Co-rúbrica construida con el grupo'],progreso:['Proyecto basado en problemas (PBL)','Sprint semanal con entregable','Rúbrica de autonomía visible','Prototipo incremental por sprint']}},crea:{name:'Creativa',color:'#fb7185',icon:'◑',tagline:'Pensamiento lateral y expresión original',lab:{atencion:['Imagen o video provocador sin contexto','Dilema ético con múltiples lecturas','Sketchnote inicial: dibuja lo que sientes','Apertura narrativa inmersiva'],feedback:['Votación visual con imágenes','Mapa mental en vivo colaborativo','Collage conceptual grupal','Debate creativo: argumenta lo opuesto'],progreso:['Portfolio visual progresivo','Prototipo en papel por etapas','Presentación creativa final','Obra o producto original como cierre']}},invest:{name:'Investigativa',color:'#a78bfa',icon:'◈',tagline:'Basada en evidencia y proyectos académicos',lab:{atencion:['Hipótesis inicial: ¿qué creen ustedes?','Contradicción entre dos fuentes reales','Dato estadístico sorprendente','Pregunta de investigación abierta'],feedback:['Revisión crítica de fuentes en pares','Debate académico con posiciones','Evaluación de calidad de evidencias','Discusión socrática guiada'],progreso:['Informe por secciones semanales','Marco teórico incremental','Presentación de avance parcial','Publicación o divulgación académica']}},game:{name:'Gamificada',color:'#ffb84d',icon:'▲',tagline:'Retos, niveles y motivación por logros',lab:{atencion:['Reto cronometrado de apertura (2 min)','Misión de la sesión revelada en video','Trivia flash de conocimiento previo','Boss battle: el error más común'],feedback:['Puntos por respuesta correcta en vivo','Ranking visible en pantalla','Power-up: bonus por explicar a un par','Kahoot con apuestas de puntos'],progreso:['XP acumulada por módulo','Niveles de competencia desbloqueables','Misiones secuenciales con recompensa','Logro final: badge de experto']}}};
+    this.ROUTE_KEYS=['trad','tech','innov','crea','invest','game'];
     const BASE='arqaula/upes2026';
-    this.T={join:BASE+'/join',hb:BASE+'/hb',state:BASE+'/state',agg:BASE+'/agg',vote:BASE+'/vote',sem:BASE+'/sem',diag:BASE+'/diag',gen:BASE+'/gen',lab:BASE+'/lab'};
+    this.T={join:BASE+'/join',hb:BASE+'/hb',state:BASE+'/state',agg:BASE+'/agg',vote:BASE+'/vote',sem:BASE+'/sem',diag:BASE+'/diag',gen:BASE+'/gen',lab:BASE+'/lab',route:BASE+'/route'};
     let id=null; try{id=localStorage.getItem('arqaula_id');}catch(e){}
     if(!id){id='u'+Math.random().toString(16).slice(2,10); try{localStorage.setItem('arqaula_id',id);}catch(e){}}
     this.myId=id;
@@ -496,16 +551,16 @@ class Component extends DCLogic {
       faculty:'ingenieria', minute:25,
       raceA:0, raceB:0,
       ladderField:'ingenieria', slots:[null,null,null,null,null], pool:this.shuffle([0,1,2,3,4]), dragId:null,
-      gen:'z',
+      gen:'z', route:null,
       // realtime by-id maps (presenter)
-      participants:{}, votesById:{}, semById:{}, diagById:{}, genById:{}, labById:{},
+      participants:{}, votesById:{}, semById:{}, diagById:{}, genById:{}, labById:{}, routeById:{},
       // participant local
       joined:false, nameDraft:'', myName:'',
-      myVote:null, mySem:null, myGen:null,
+      myVote:null, mySem:null, myGen:null, myRoute:null,
       diag:Array(10).fill(null), diagSent:false,
       lab:{atencion:null,feedback:null,progreso:null}, labDone:false,
       // participant received
-      pChapter:null, pAgg:null,
+      pChapter:null, pAgg:null, pRoute:null,
     };
   }
   shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
@@ -533,7 +588,7 @@ class Component extends DCLogic {
     clearInterval(this.hbTimer); this.setState({connected:false});
     const c=window.mqtt.connect('wss://broker.emqx.io:8084/mqtt',{clientId:'arq_'+role+'_'+Math.random().toString(16).slice(2,8),clean:true,reconnectPeriod:2500,connectTimeout:8000,keepalive:30});
     this.client=c;
-    c.on('connect',()=>{ this.setState({connected:true}); if(this.effRole()==='presenter'){ c.subscribe([this.T.join,this.T.hb,this.T.vote,this.T.sem,this.T.diag,this.T.gen,this.T.lab]); this.pubState(); this.pubAgg(); } else { c.subscribe([this.T.state,this.T.agg]); if(this.state.joined)this.publishJoin(); } });
+    c.on('connect',()=>{ this.setState({connected:true}); if(this.effRole()==='presenter'){ c.subscribe([this.T.join,this.T.hb,this.T.vote,this.T.sem,this.T.diag,this.T.gen,this.T.lab,this.T.route]); this.pubState(); this.pubAgg(); } else { c.subscribe([this.T.state,this.T.agg]); if(this.state.joined)this.publishJoin(); } });
     c.on('message',(t,p)=>this.onMsg(t,p));
     c.on('close',()=>this.setState({connected:false}));
     c.on('error',()=>{});
@@ -547,12 +602,13 @@ class Component extends DCLogic {
       else if(topic===this.T.diag){ if(!d.id)return; this.setState(s=>({diagById:{...s.diagById,[d.id]:{total:d.total,profileIdx:d.profileIdx}}}),()=>this.pubAgg()); }
       else if(topic===this.T.gen){ if(!d.id)return; this.setState(s=>({genById:{...s.genById,[d.id]:d.gen}}),()=>this.pubAgg()); }
       else if(topic===this.T.lab){ if(!d.id)return; this.setState(s=>({labById:{...s.labById,[d.id]:{name:d.name,atencion:d.atencion,feedback:d.feedback,progreso:d.progreso,ts:Date.now()}}}),()=>this.pubAgg()); }
+      else if(topic===this.T.route){ if(!d.id)return; this.setState(s=>({routeById:{...s.routeById,[d.id]:d.route}}),()=>this.pubAgg()); }
     } else {
-      if(topic===this.T.state){ this.setState({pChapter:d.chapter}); }
+      if(topic===this.T.state){ this.setState({pChapter:d.chapter,pRoute:d.route||null}); }
       else if(topic===this.T.agg){ this.setState({pAgg:d}); }
     }
   }
-  pubState(){ if(this.client&&this.state.connected)this.client.publish(this.T.state,JSON.stringify({chapter:this.state.chapter}),{retain:true}); }
+  pubState(){ if(this.client&&this.state.connected)this.client.publish(this.T.state,JSON.stringify({chapter:this.state.chapter,route:this.state.route}),{retain:true}); }
   pubAgg(){
     if(!(this.client&&this.state.connected))return;
     const s=this.state;
@@ -560,7 +616,8 @@ class Component extends DCLogic {
     const sem={verde:0,amarillo:0,rojo:0}; Object.values(s.semById).forEach(v=>{if(sem[v]!=null)sem[v]++;});
     let dc=0,dsum=0,prof=[0,0,0]; Object.values(s.diagById).forEach(o=>{dc++;dsum+=o.total||0;if(o.profileIdx!=null)prof[o.profileIdx]++;});
     const gen={z:0,mil:0,adt:0}; Object.values(s.genById).forEach(g=>{if(gen[g]!=null)gen[g]++;});
-    const agg={poll:{counts:poll,total:pt},sem,diag:{count:dc,avg:dc?Math.round(dsum/dc):0,profiles:prof},gen,lab:{count:Object.keys(s.labById).length}};
+    const routeC={}; this.ROUTE_KEYS.forEach(k=>{routeC[k]=0;}); Object.values(s.routeById).forEach(r=>{if(routeC[r]!=null)routeC[r]++;});
+    const agg={poll:{counts:poll,total:pt},sem,diag:{count:dc,avg:dc?Math.round(dsum/dc):0,profiles:prof},gen,lab:{count:Object.keys(s.labById).length},routeC};
     this.client.publish(this.T.agg,JSON.stringify(agg),{retain:true});
   }
   publishJoin(){ if(this.client)this.client.publish(this.T.join,JSON.stringify({id:this.myId,name:this.state.myName})); }
@@ -591,6 +648,8 @@ class Component extends DCLogic {
   pickGen(g){this.setState({myGen:g});if(this.client&&this.state.connected)this.client.publish(this.T.gen,JSON.stringify({id:this.myId,gen:g}));}
   setDiag(i,v){this.setState(s=>{const d=s.diag.slice();d[i]=v;return {diag:d};});}
   sendDiag(){const d=this.state.diag;if(d.some(x=>x==null))return;const total=d.reduce((a,b)=>a+(b||0),0);let pi=0;this.DIAG_PROFILES.forEach((p,idx)=>{if(total>=p.min&&total<=p.max)pi=idx;});this.setState({diagSent:true});if(this.client&&this.state.connected)this.client.publish(this.T.diag,JSON.stringify({id:this.myId,total,profileIdx:pi}));}
+  selectRoute(key){this.setState({route:key},()=>this.pubState());}
+  sendRoute(key){this.setState({myRoute:key});if(this.client&&this.state.connected)this.client.publish(this.T.route,JSON.stringify({id:this.myId,route:key}));}
   pickLab(k,v){this.setState(s=>({lab:{...s.lab,[k]:v},labDone:false}));}
   genModel(){const l=this.state.lab;if(!(l.atencion&&l.feedback&&l.progreso))return;this.setState({labDone:true});if(this.client&&this.state.connected)this.client.publish(this.T.lab,JSON.stringify({id:this.myId,name:this.state.myName,atencion:l.atencion,feedback:l.feedback,progreso:l.progreso}));}
   resetLab(){this.setState({lab:{atencion:null,feedback:null,progreso:null},labDone:false});}
@@ -668,8 +727,18 @@ class Component extends DCLogic {
     const genOptions=this.GEN_KEYS.map(k=>{const sel=s.myGen===k;const col=this.GEN_COLORS[k];return {name:this.GENERATIONS[k].name,age:this.GENERATIONS[k].age,selBg:sel?col+'22':'rgba(255,255,255,.04)',selBdr:sel?col:'rgba(255,255,255,.14)',onClick:()=>this.pickGen(k)};});
     const agen=agg.gen; const agenT=agen.z+agen.mil+agen.adt; const agenMax=Math.max(1,agen.z,agen.mil,agen.adt);
     const pGenBars=this.GEN_KEYS.map(k=>{const c=agen[k]||0;return {name:this.GENERATIONS[k].name,color:this.GEN_COLORS[k],width:(c/agenMax*100)+'%',pctLabel:agenT?Math.round(c/agenT*100)+'%':'0%'};});
+    // ---- route data ----
+    const activeRoute=s.route?this.ROUTES[s.route]:null;
+    const routeCards=this.ROUTE_KEYS.map(k=>{const r=this.ROUTES[k];const active=s.route===k;return {key:k,name:r.name,icon:r.icon,tagline:r.tagline,color:r.color,active,bg:active?r.color+'22':'rgba(255,255,255,.04)',bdr:active?r.color:'rgba(255,255,255,.1)',onClick:()=>this.selectRoute(k)};});
+    const routeDist=this.ROUTE_KEYS.map(k=>{const r=this.ROUTES[k];const c=Object.values(s.routeById).filter(v=>v===k).length;const tot=Object.keys(s.routeById).length;return {name:r.name,icon:r.icon,color:r.color,count:c,pct:tot?Math.round(c/tot*100)+'%':'0%',width:tot?(c/Math.max(1,...this.ROUTE_KEYS.map(x=>Object.values(s.routeById).filter(v=>v===x).length))*100)+'%':'0%'};});
+    // participant route picker
+    const myRouteObj=s.myRoute?this.ROUTES[s.myRoute]:null;
+    const pRouteOptions=this.ROUTE_KEYS.map(k=>{const r=this.ROUTES[k];const sel=s.myRoute===k;return {key:k,name:r.name,icon:r.icon,tagline:r.tagline,color:r.color,selBg:sel?r.color+'22':'rgba(255,255,255,.04)',selBdr:sel?r.color:'rgba(255,255,255,.14)',onClick:()=>this.sendRoute(k)};});
+    const pSessionRoute=s.pRoute?this.ROUTES[s.pRoute]:null;
+    // route-adaptive lab
+    const effLab=activeRoute?{atencion:{title:'1 · Atención',color:'#5ce1ff',options:activeRoute.lab.atencion},feedback:{title:'2 · Feedback',color:'#34d399',options:activeRoute.lab.feedback},progreso:{title:'3 · Micro-progreso',color:'#a78bfa',options:activeRoute.lab.progreso}}:this.LABDEF;
     // lab (participant)
-    const labSections=Object.keys(this.LABDEF).map(key=>{const dd=this.LABDEF[key];return {title:dd.title,color:dd.color,options:dd.options.map(o=>{const active=s.lab[key]===o;return {label:o,bg:active?dd.color+'22':'rgba(255,255,255,.03)',bdr:active?dd.color:'rgba(255,255,255,.1)',col:active?'#fff':'#aeb7c7',mark:active?'●':'○',onClick:()=>this.pickLab(key,o)};})};});
+    const labSections=Object.keys(effLab).map(key=>{const dd=effLab[key];return {title:dd.title,color:dd.color,options:dd.options.map(o=>{const active=s.lab[key]===o;return {label:o,bg:active?dd.color+'22':'rgba(255,255,255,.03)',bdr:active?dd.color:'rgba(255,255,255,.1)',col:active?'#fff':'#aeb7c7',mark:active?'●':'○',onClick:()=>this.pickLab(key,o)};})};});
     const labReady=s.lab.atencion&&s.lab.feedback&&s.lab.progreso;
     // follow-along
     const fol=this.FOLLOW[pc]||{};
@@ -706,6 +775,8 @@ class Component extends DCLogic {
       ladderMsgColor:!allFilled?'#8b93a7':(allCorrect?'#34d399':'#fb7185'),
       // presenter gen
       genDist, genTabs, genName:G.name, genAge:G.age, genFormats:G.formats, genReinforce:G.reinforce, genStrategy:G.strategy,
+      // presenter route
+      routeCards, routeDist, activeRoute, routeActive:s.route!=null, routeLabel:activeRoute?activeRoute.name:'Sin ruta', routeColor:activeRoute?activeRoute.color:'#5b6478', routeIcon:activeRoute?activeRoute.icon:'·',
       // presenter lab
       labCount, labFeed, labEmpty:labCount===0,
       // participant
@@ -717,13 +788,14 @@ class Component extends DCLogic {
       pIsPoll:pf(0), pollOptions, pVoted:s.myVote!=null, pPollBars, pPollTotal:ppt,
       pIsDiag:pf(1), diagItems, diagAnswered, diagAnsweredW:(diagAnswered/10*100)+'%', diagNotSent:!s.diagSent, diagSent:s.diagSent, sendDiag:()=>this.sendDiag(), diagSendBg:diagDone?'linear-gradient(90deg,#5ce1ff,#a78bfa)':'rgba(255,255,255,.1)', diagSendOpacity:diagDone?'1':'.5',
       diagTotal, profName:pprof.name, profIcon:pprof.icon, profDesc:pprof.desc, gaugeColor:pprof.color, profBorder:pprof.color+'59', profBg:pprof.color+'14', gaugeOffset:(GC*(1-pFrac)).toFixed(1),
-      pIsFollow:(pf(2)||pf(3)||pf(5)), followTag:fol.tag, followColor:fol.color||'#5ce1ff', followIcon:fol.icon, followTitle:fol.title, followIdea:fol.idea,
-      pIsSem:pf(4), semOptions, semSet:s.mySem!=null, pSemBars, pSemTotal:asemT,
-      pIsGen:pf(6), genOptions, genSet:s.myGen!=null, myGenName:s.myGen?this.GENERATIONS[s.myGen].name:'', myGenStrategy:s.myGen?this.GENERATIONS[s.myGen].strategy:'', pGenBars,
-      pIsLab:pf(7), labSections, labReadyOpacity:labReady?'1':'.5', labBtnBg:labReady?'linear-gradient(90deg,#5ce1ff,#a78bfa)':'rgba(255,255,255,.1)', genModelFn:()=>this.genModel(), labDone:s.labDone, labAtencion:s.lab.atencion, labFeedback:s.lab.feedback, labProgreso:s.lab.progreso, resetLab:()=>this.resetLab(), printPlan:()=>this.printPlan(),
-      pIsClose:pf(8), hasPlan:s.labDone,
+      pIsFollow:(pf(3)||pf(4)||pf(6)), followTag:fol.tag, followColor:fol.color||'#5ce1ff', followIcon:fol.icon, followTitle:fol.title, followIdea:fol.idea,
+      pIsSem:pf(5), semOptions, semSet:s.mySem!=null, pSemBars, pSemTotal:asemT,
+      pIsGen:pf(7), genOptions, genSet:s.myGen!=null, myGenName:s.myGen?this.GENERATIONS[s.myGen].name:'', myGenStrategy:s.myGen?this.GENERATIONS[s.myGen].strategy:'', pGenBars,
+      pIsLab:pf(8), labSections, labReadyOpacity:labReady?'1':'.5', labBtnBg:labReady?'linear-gradient(90deg,#5ce1ff,#a78bfa)':'rgba(255,255,255,.1)', genModelFn:()=>this.genModel(), labDone:s.labDone, labAtencion:s.lab.atencion, labFeedback:s.lab.feedback, labProgreso:s.lab.progreso, resetLab:()=>this.resetLab(), printPlan:()=>this.printPlan(),
+      pIsRoute:pf(2), pRouteOptions, myRouteObj, myRoutePicked:s.myRoute!=null, myRouteName:myRouteObj?myRouteObj.name:'', myRouteColor:myRouteObj?myRouteObj.color:'#5ce1ff', myRouteIcon:myRouteObj?myRouteObj.icon:'', myRouteTagline:myRouteObj?myRouteObj.tagline:'', pSessionRoute, pSessionRouteName:pSessionRoute?pSessionRoute.name:'', pSessionRouteColor:pSessionRoute?pSessionRoute.color:'#5ce1ff',
+      pIsClose:pf(9), hasPlan:s.labDone,
       // print plan
-      planName:s.myName||'Docente', planProfile, planAtencion:s.lab.atencion||'—', planFeedback:s.lab.feedback||'—', planProgreso:s.lab.progreso||'—',
+      planName:s.myName||'Docente', planProfile, planRoute:myRouteObj?myRouteObj.name:'No seleccionada', planAtencion:s.lab.atencion||'—', planFeedback:s.lab.feedback||'—', planProgreso:s.lab.progreso||'—',
     };
   }
 }
